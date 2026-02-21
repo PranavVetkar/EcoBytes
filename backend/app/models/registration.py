@@ -1,9 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from typing import Optional
-
-from pydantic import BaseModel, ConfigDict
-
+from pydantic import BaseModel, Field
 
 class RegistrationStatus(str, Enum):
     PENDING = "pending"
@@ -11,14 +9,15 @@ class RegistrationStatus(str, Enum):
     REJECTED = "rejected"
     ATTENDED = "attended"
 
-
-class Registration(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
-
-    registration_id: str
+class RegistrationBase(BaseModel):
     event_id: str
     user_id: str
+    user_name: str
     status: RegistrationStatus = RegistrationStatus.PENDING
-    checked_in_at: Optional[datetime] = None
-    points_awarded: int = 0
+
+class RegistrationCreate(RegistrationBase):
+    pass
+
+class Registration(RegistrationBase):
+    id: str
     registered_at: datetime

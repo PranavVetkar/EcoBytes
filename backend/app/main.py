@@ -9,6 +9,8 @@ from app.routers import (
     comments,
     events,
     feed,
+    notifications,
+    registrations,
     rewards,
     users,
     verification,
@@ -42,6 +44,8 @@ app.include_router(comments.router,      prefix="/api/v1/comments",      tags=["
 app.include_router(feed.router,          prefix="/api/v1/feed",          tags=["feed"])
 app.include_router(communities.router,   prefix="/api/v1/communities",   tags=["communities"])
 app.include_router(events.router,        prefix="/api/v1/events",        tags=["events"])
+app.include_router(registrations.router, prefix="/api/v1/registrations", tags=["registrations"])
+app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["notifications"])
 app.include_router(rewards.router,       prefix="/api/v1/rewards",       tags=["rewards"])
 app.include_router(verification.router,  prefix="/api/v1/verification",  tags=["verification"])
 

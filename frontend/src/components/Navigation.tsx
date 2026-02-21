@@ -84,6 +84,25 @@ export default function Navigation() {
       ),
     },
     {
+      label: "Activity",
+      path: "/notifications",
+      icon: (active: boolean) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill={active ? "currentColor" : "none"}
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-6 w-6"
+        >
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
+      ),
+    },
+    {
       label: "Profile",
       path: "/",
       icon: (active: boolean) => (
@@ -113,9 +132,8 @@ export default function Navigation() {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center gap-1 transition-colors ${
-                active ? "text-terra-600" : "text-gray-400 hover:text-gray-600"
-              }`}
+              className={`flex flex-col items-center gap-1 transition-colors ${active ? "text-terra-600" : "text-gray-400 hover:text-gray-600"
+                }`}
             >
               {item.icon(active)}
               <span className="text-[10px] font-medium uppercase tracking-tight">

@@ -9,6 +9,7 @@ import CommunityDetails from "./pages/CommunityDetails";
 import Rewards from "./pages/Rewards";
 import Login from "./pages/Login";
 import Onboarding from "./pages/Onboarding";
+import Notifications from "./pages/Notifications";
 
 function LoadingScreen() {
   return (
@@ -76,6 +77,7 @@ export default function App() {
             <Route path="/communities/:id" element={<CommunityDetails />} />
             <Route path="/rewards" element={<Rewards profile={profile} />} />
             <Route path="/log" element={<LogAction />} />
+            <Route path="/notifications" element={<Notifications />} />
           </Route>
         </Route>
 

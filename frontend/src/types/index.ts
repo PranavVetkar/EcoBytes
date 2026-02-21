@@ -81,6 +81,7 @@ export interface EcoAction {
 }
 
 export interface UpcomingCommunityEvent {
+  event_id?: string;
   event_name: string;
   date: Date;
   location: string;
@@ -143,13 +144,23 @@ export interface Reward {
   is_active: boolean;
 }
 
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: "rsvp_request" | "rsvp_approved" | "rsvp_rejected" | "new_comment" | "general";
+  message: string;
+  data?: any;
+  is_read: boolean;
+  timestamp: Date;
+}
+
 export interface Registration {
-  registration_id: string;
+  id: string;
   event_id: string;
   user_id: string;
+  user_name: string;
   status: RegistrationStatus;
   checked_in_at?: Date;
-  points_awarded: number;
   registered_at: Date;
 }
 
