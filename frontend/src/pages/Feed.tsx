@@ -1,22 +1,49 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import { getCurrentUser } from "../services/auth";
 
-function SocialPost({ post }: { post: any }) {
+function SocialPost({ post, onDelete }: { post: any; onDelete: (id: string) => void }) {
   const [liked, setLiked] = useState(false);
+  const user = getCurrentUser();
+  const isAuthor = user?.uid === post.author_id;
+
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete this eco-action? This cannot be undone.")) return;
+    try {
+      await api.delete(`/actions/${post.id}`);
+      onDelete(post.id);
+    } catch (err: any) {
+      alert("Failed to delete post: " + (err.response?.data?.detail || err.message));
+    }
+  };
 
   return (
     <div className="mb-6 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-gray-100 hover:shadow-md transition-shadow">
       {/* Post Header */}
-      <div className="flex items-center gap-3 p-4">
-        <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-terra-400 to-earth-200 flex items-center justify-center text-terra-900 font-black shadow-sm">
-          {post.author_name?.charAt(0) || post.author_id?.charAt(0) || "U"}
+      <div className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-terra-400 to-earth-200 flex items-center justify-center text-terra-900 font-black shadow-sm">
+            {post.author_name?.charAt(0) || post.author_id?.charAt(0) || "U"}
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-black text-terra-950">{post.author_name || "EcoWarrior"} {isAuthor && <span className="text-[10px] text-terra-500 font-normal ml-1">(You)</span>}</span>
+            <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">
+              {post.timestamp ? new Date(post.timestamp).toLocaleDateString() : "Just now"}
+            </span>
+          </div>
         </div>
-        <div className="flex flex-col">
-          <span className="text-sm font-black text-terra-950">{post.author_name || "EcoWarrior"}</span>
-          <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">
-            {post.timestamp ? new Date(post.timestamp).toLocaleDateString() : "Just now"}
-          </span>
-        </div>
+
+        {isAuthor && (
+          <button
+            onClick={handleDelete}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-500 transition-colors hover:bg-red-500 hover:text-white ring-1 ring-red-100"
+            title="Delete post"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+              <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2M10 11v6m4-11v0m-4 0v0m4 11v-6" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Post Image/Video */}
@@ -126,6 +153,10 @@ export default function Feed() {
     fetchFeed();
   }, []);
 
+  const handleDelete = (postId: string) => {
+    setPosts(prev => prev.filter(p => p.id !== postId));
+  };
+
   return (
     <div className="mx-auto max-w-lg">
       <header className="sticky top-0 z-40 flex items-center justify-between bg-white/80 px-4 py-4 backdrop-blur-md">
@@ -154,7 +185,7 @@ export default function Feed() {
           </div>
         ) : (
           posts.map((post) => (
-            <SocialPost key={post.id} post={post} />
+            <SocialPost key={post.id} post={post} onDelete={handleDelete} />
           ))
         )}
       </main>

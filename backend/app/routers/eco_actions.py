@@ -115,3 +115,67 @@ async def get_eco_action(action_id: str, user: CurrentUser):
         raise HTTPException(status_code=404, detail="Action not found")
         
     return doc.to_dict()
+
+
+@router.delete("/{action_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_eco_action(action_id: str, user: CurrentUser):
+    """
+    Delete an eco action, its associated media from Cloudinary,
+    and decrement the user's post count.
+    """
+    db = get_firestore_client()
+    doc_ref = db.collection(ACTIONS_COLLECTION).document(action_id)
+    doc = await doc_ref.get()
+    
+    if not doc.exists:
+        raise HTTPException(status_code=404, detail="Action not found")
+        
+    action_data = doc.to_dict()
+    
+    # Verify ownership
+    if action_data.get("author_id") != user["uid"]:
+        raise HTTPException(
+            status_code=403, 
+            detail="You do not have permission to delete this action"
+        )
+        
+    # Configure Cloudinary for deletion
+    import cloudinary
+    import cloudinary.uploader
+    import os
+    from app.config import settings
+    
+    if settings.cloudinary_cloud_name and settings.cloudinary_api_key and settings.cloudinary_api_secret:
+        cloudinary.config(
+            cloud_name=settings.cloudinary_cloud_name,
+            api_key=settings.cloudinary_api_key,
+            api_secret=settings.cloudinary_api_secret,
+            secure=True
+        )
+    else:
+        cloudinary_url = os.getenv("CLOUDINARY_URL")
+        if cloudinary_url:
+            cloudinary.config(cloudinary_url=cloudinary_url)
+
+    # Delete media from Cloudinary if public_id exists
+    try:
+        public_id = f"eco_actions/{user['uid']}/{action_id}"
+        is_video = action_data.get("video_url") is not None
+        resource_type = "video" if is_video else "image"
+        
+        print(f"DEBUG: Attempting to delete Cloudinary resource: {public_id} ({resource_type})")
+        cloudinary.uploader.destroy(public_id, resource_type=resource_type)
+        print("DEBUG: Cloudinary deletion request sent")
+    except Exception as e:
+        print(f"WARNING: Failed to delete media from Cloudinary: {e}")
+
+    # Delete from Firestore
+    await doc_ref.delete()
+    
+    # Decrement user's post count
+    user_ref = db.collection("users").document(user["uid"])
+    await user_ref.update({
+        "post_count": firestore.Increment(-1)
+    })
+    
+    return None

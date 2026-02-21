@@ -52,6 +52,18 @@ export default function Dashboard({ user, profile, onRefresh }: DashboardProps) 
     }
   };
 
+  const handleActionDelete = async (actionId: string) => {
+    if (!window.confirm("Are you sure you want to delete this eco-action?")) return;
+    try {
+      await api.delete(`/actions/${actionId}`);
+      // Update local state
+      setRecentActions(prev => prev.filter(a => a.id !== actionId));
+      onRefresh(); // Refresh profile stats (post_count)
+    } catch (err: any) {
+      alert("Failed to delete action: " + (err.response?.data?.detail || err.message));
+    }
+  };
+
   const statCards = [
     {
       label: "Points",
@@ -214,6 +226,14 @@ export default function Dashboard({ user, profile, onRefresh }: DashboardProps) 
                       {action.category?.replace(/_/g, " ")}
                     </span>
                   </div>
+                  {/* Delete Button */}
+                  <button
+                    onClick={() => handleActionDelete(action.id)}
+                    className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-white opacity-0 group-hover:opacity-100 transition hover:bg-red-500 backdrop-blur-md"
+                    title="Delete Action"
+                  >
+                    ✖
+                  </button>
                 </div>
               ))}
             </div>
