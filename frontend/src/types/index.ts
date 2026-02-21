@@ -78,6 +78,8 @@ export interface EcoAction {
   ai_verdict?: AiVerdict;
   likes_count: number;
   comments_count: number;
+  description?: string;
+  city?: string;
 }
 
 export interface UpcomingCommunityEvent {
@@ -98,9 +100,17 @@ export interface Community {
   members: string[];
   rating: number;
   admin_id: string;
+  coordinator_ids?: string[];
   upcoming_events: UpcomingCommunityEvent[];
   image_url?: string;
   created_at: Date;
+}
+
+export interface CoordinatorProfile {
+  uid: string;
+  name: string;
+  area: string;
+  bio?: string;
 }
 
 export interface Event {
@@ -223,6 +233,8 @@ export interface CreateEcoActionPayload {
   event_id?: string;
   image_url?: string;
   video_url?: string;
+  description?: string;
+  city?: string;
 }
 
 export interface ApiError {

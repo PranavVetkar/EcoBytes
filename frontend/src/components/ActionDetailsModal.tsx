@@ -7,13 +7,17 @@ interface ActionDetailsModalProps {
     action: EcoAction;
     onClose: () => void;
     onDelete?: (id: string) => void;
+    onStatusUpdate?: (id: string, newStatus: string) => void;
 }
 
-export default function ActionDetailsModal({ action, onClose, onDelete }: ActionDetailsModalProps) {
+export default function ActionDetailsModal({ action, onClose, onDelete, onStatusUpdate }: ActionDetailsModalProps) {
     const [comments, setComments] = useState<Comment[]>([]);
     const [newComment, setNewComment] = useState("");
     const [loadingComments, setLoadingComments] = useState(false);
     const [submittingComment, setSubmittingComment] = useState(false);
+    const [reviewing, setReviewing] = useState(false);
+    const [canReview, setCanReview] = useState(false);
+
     const user = getCurrentUser();
     const isAuthor = user?.uid === action.author_id;
 
@@ -29,8 +33,34 @@ export default function ActionDetailsModal({ action, onClose, onDelete }: Action
         }
     };
 
+    const checkReviewPermissions = async () => {
+        if (!action.community_id || !user) return;
+        try {
+            // Fetch community and user profile to check roles
+            const [commRes, userRes] = await Promise.all([
+                api.get(`/communities/${action.community_id}`),
+                api.get(`/users/me`)
+            ]);
+
+            const comm = commRes.data;
+            const prof = userRes.data;
+
+            const isCommCoord = comm.coordinator_ids?.includes(user.uid);
+
+            if (isCommCoord) {
+                // Coordinator can review only if city matches their area
+                if (prof.area === action.city) {
+                    setCanReview(true);
+                }
+            }
+        } catch (err) {
+            console.error("Failed to check review permissions", err);
+        }
+    };
+
     useEffect(() => {
         fetchComments();
+        checkReviewPermissions();
     }, [action.id]);
 
     const handlePostComment = async () => {
@@ -47,6 +77,21 @@ export default function ActionDetailsModal({ action, onClose, onDelete }: Action
             console.error("Failed to post comment", err);
         } finally {
             setSubmittingComment(false);
+        }
+    };
+
+    const handleUpdateStatus = async (status: "verified" | "rejected") => {
+        try {
+            setReviewing(true);
+            const res = await api.patch(`/actions/${action.id}/status`, { status });
+            alert(res.data.message);
+            if (onStatusUpdate) onStatusUpdate(action.id, status);
+            onClose();
+        } catch (err: any) {
+            console.error("Failed to update status", err);
+            alert("Error: " + (err.response?.data?.detail || "Failed to update action status."));
+        } finally {
+            setReviewing(false);
         }
     };
 
@@ -97,7 +142,15 @@ export default function ActionDetailsModal({ action, onClose, onDelete }: Action
                                     {(action as any).author_name || "Eco Warrior"}
                                     {isAuthor && <span className="ml-1.5 text-[9px] font-black uppercase text-terra-500">(You)</span>}
                                 </p>
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{formattedDate}</p>
+                                <div className="flex items-center gap-2">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{formattedDate}</p>
+                                    {action.city && (
+                                        <>
+                                            <span className="text-gray-300">•</span>
+                                            <p className="text-[10px] font-black text-terra-500 uppercase tracking-widest">📍 {action.city}</p>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </div>
                         <div className="flex gap-2">
@@ -130,6 +183,36 @@ export default function ActionDetailsModal({ action, onClose, onDelete }: Action
                                 <span className="text-lg font-black text-terra-600">+{action.points_earned}</span>
                             </div>
                         </div>
+
+                        {/* Coordinator Controls */}
+                        {canReview && action.verification_status === "pending" && (
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => handleUpdateStatus("verified")}
+                                    disabled={reviewing}
+                                    className="flex-1 rounded-xl bg-terra-600 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-terra-700 active:scale-95 disabled:opacity-50"
+                                >
+                                    {reviewing ? "Processing..." : "Approve"}
+                                </button>
+                                <button
+                                    onClick={() => handleUpdateStatus("rejected")}
+                                    disabled={reviewing}
+                                    className="flex-1 rounded-xl bg-red-50 py-3 text-[10px] font-black uppercase tracking-widest text-red-600 ring-1 ring-red-100 transition-all hover:bg-red-100 active:scale-95 disabled:opacity-50"
+                                >
+                                    Reject
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Status Badge (if not pending) */}
+                        {action.verification_status !== "pending" && (
+                            <div className="mt-2 flex items-center justify-center">
+                                <span className={`rounded-lg px-3 py-1 text-[9px] font-black uppercase tracking-widest ${action.verification_status === "verified" ? "bg-terra-50 text-terra-600 ring-1 ring-terra-100" : "bg-red-50 text-red-600 ring-1 ring-red-100"
+                                    }`}>
+                                    {action.verification_status}
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Comments List */}

@@ -113,3 +113,71 @@ async def get_community(community_id: str, user: CurrentUser):
         raise HTTPException(status_code=404, detail="Community not found")
         
     return doc.to_dict()
+
+
+@router.post("/{community_id}/coordinators")
+async def add_coordinator(community_id: str, payload: dict, user: CurrentUser):
+    """Add a coordinator to the community by email (Admin only)."""
+    email = payload.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+        
+    db = get_firestore_client()
+    
+    # 1. Verify community and admin status
+    comm_ref = db.collection(COMMUNITIES_COLLECTION).document(community_id)
+    comm_doc = await comm_ref.get()
+    if not comm_doc.exists:
+        raise HTTPException(status_code=404, detail="Community not found")
+        
+    comm_data = comm_doc.to_dict()
+    if comm_data.get("admin_id") != user["uid"]:
+        raise HTTPException(status_code=403, detail="Only the community host can add coordinators")
+        
+    # 2. Lookup user by email
+    users_ref = db.collection("users").where("contact", "==", email).limit(1).get()
+    query_results = await users_ref
+    if not query_results:
+        raise HTTPException(status_code=404, detail="User with this email not found")
+        
+    coord_user = query_results[0].to_dict()
+    coord_uid = query_results[0].id
+    
+    # 3. Add to coordinators
+    if coord_uid in comm_data.get("coordinator_ids", []):
+        raise HTTPException(status_code=400, detail="User is already a coordinator")
+        
+    await comm_ref.update({
+        "coordinator_ids": firestore.ArrayUnion([coord_uid])
+    })
+    
+    return {"status": "success", "message": f"Added {coord_user.get('name')} as coordinator"}
+
+
+@router.get("/{community_id}/coordinators")
+async def list_coordinators(community_id: str, user: CurrentUser):
+    """List profiles of all coordinators in the community."""
+    db = get_firestore_client()
+    
+    comm_doc = await db.collection(COMMUNITIES_COLLECTION).document(community_id).get()
+    if not comm_doc.exists:
+        raise HTTPException(status_code=404, detail="Community not found")
+        
+    coord_ids = comm_doc.to_dict().get("coordinator_ids", [])
+    if not coord_ids:
+        return []
+        
+    # Fetch profiles for these UIDs
+    profiles = []
+    for uid in coord_ids:
+        user_doc = await db.collection("users").document(uid).get()
+        if user_doc.exists:
+            u_data = user_doc.to_dict()
+            profiles.append({
+                "uid": uid,
+                "name": u_data.get("name"),
+                "area": u_data.get("area"),
+                "bio": u_data.get("bio")
+            })
+            
+    return profiles

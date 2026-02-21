@@ -49,6 +49,7 @@ class EcoActionCreate(BaseModel):
     image_url: Optional[str] = None
     video_url: Optional[str] = None
     description: Optional[str] = None
+    city: Optional[str] = None
 
 
 class EcoAction(BaseModel):
@@ -73,3 +74,4 @@ class EcoAction(BaseModel):
     likes_count: int = 0
     comments_count: int = 0
     description: Optional[str] = None
+    city: Optional[str] = None

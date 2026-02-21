@@ -33,6 +33,7 @@ class Community(BaseModel):
     members: list[str] = Field(default_factory=list, description="Array of user UIDs")
     rating: float = 0.0
     admin_id: str = Field(description="UID of the community creator/admin")
+    coordinator_ids: list[str] = Field(default_factory=list)
     upcoming_events: list[UpcomingEvent] = Field(default_factory=list)
     description: Optional[str] = None
     location: Optional[str] = None

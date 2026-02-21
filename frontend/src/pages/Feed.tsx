@@ -68,9 +68,17 @@ function SocialPost({ post, onDelete }: { post: any; onDelete: (id: string) => v
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-black text-terra-950">{post.author_name || "EcoWarrior"} {isAuthor && <span className="text-[10px] text-terra-500 font-normal ml-1">(You)</span>}</span>
-            <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">
-              {post.timestamp ? new Date(post.timestamp).toLocaleDateString() : "Just now"}
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">
+                {post.timestamp ? new Date(post.timestamp).toLocaleDateString() : "Just now"}
+              </span>
+              {post.city && (
+                <>
+                  <span className="text-gray-300">•</span>
+                  <span className="text-[10px] font-black text-terra-600 uppercase tracking-widest">📍 {post.city}</span>
+                </>
+              )}
+            </div>
           </div>
         </div>
 

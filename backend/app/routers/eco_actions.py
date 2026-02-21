@@ -35,6 +35,7 @@ async def create_eco_action(
     quantity_unit: str = Form(...),
     description: Optional[str] = Form(None),
     community_id: Optional[str] = Form(None),
+    city: Optional[str] = Form(None),
     file: UploadFile = File(...)
 ):
     """
@@ -96,7 +97,8 @@ async def create_eco_action(
         video_url=file_url if is_video else None,
         timestamp=datetime.utcnow(),
         verification_status=VerificationStatus.PENDING,
-        points_earned=0.0 # Will be updated after verification
+        points_earned=0.0, # Will be updated after verification
+        city=city
     )
     
     await db.collection(ACTIONS_COLLECTION).document(action_id).set(new_action.model_dump())
@@ -184,3 +186,68 @@ async def delete_eco_action(action_id: str, user: CurrentUser):
     })
     
     return None
+
+
+@router.patch("/{action_id}/status")
+async def update_action_status(action_id: str, payload: dict, user: CurrentUser):
+    """
+    Update the verification status of an eco-action.
+    Coordinators and Admins can approve/reject if they belong to the same community
+    and (for coordinators) the same city.
+    """
+    new_status = payload.get("status")
+    if new_status not in [VerificationStatus.VERIFIED, VerificationStatus.REJECTED]:
+        raise HTTPException(status_code=400, detail="Invalid status. Must be 'verified' or 'rejected'.")
+
+    db = get_firestore_client()
+    doc_ref = db.collection(ACTIONS_COLLECTION).document(action_id)
+    doc = await doc_ref.get()
+
+    if not doc.exists:
+        raise HTTPException(status_code=404, detail="Action not found")
+
+    action_data = doc.to_dict()
+    comm_id = action_data.get("community_id")
+
+    if not comm_id:
+        raise HTTPException(status_code=400, detail="Action is not associated with a community")
+
+    # 1. Fetch community to check roles
+    comm_doc = await db.collection("communities").document(comm_id).get()
+    if not comm_doc.exists:
+        raise HTTPException(status_code=404, detail="Community not found")
+
+    comm_data = comm_doc.to_dict()
+    is_coordinator = user["uid"] in comm_data.get("coordinator_ids", [])
+
+    if not is_coordinator:
+        raise HTTPException(status_code=403, detail="Only coordinators can review actions")
+
+    # 2. Location Check for Coordinators
+    # Fetch coordinator's profile to check area
+    user_prof = await db.collection("users").document(user["uid"]).get()
+    coord_area = user_prof.to_dict().get("area") if user_prof.exists else ""
+    
+    if coord_area != action_data.get("city"):
+        raise HTTPException(
+            status_code=403, 
+            detail=f"As a {coord_area} coordinator, you can only review actions in {coord_area}."
+        )
+
+    # 3. Update status and AWARD POINTS if verified
+    updates = {"verification_status": new_status}
+    message = f"Action {new_status}"
+
+    if new_status == VerificationStatus.VERIFIED and action_data.get("verification_status") != VerificationStatus.VERIFIED:
+        # Simple point logic: 10 points per action for now
+        points = 10.0
+        updates["points_earned"] = points
+        
+        # Increment user's total points
+        author_ref = db.collection("users").document(action_data["author_id"])
+        await author_ref.update({"total_points": firestore.Increment(int(points))})
+        message += f" and awarded {points} points"
+
+    await doc_ref.update(updates)
+
+    return {"status": "success", "message": message}

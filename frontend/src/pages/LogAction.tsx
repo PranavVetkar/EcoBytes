@@ -17,6 +17,8 @@ const CATEGORIES: { value: ActionCategory; label: string }[] = [
   { value: "other", label: "✅ Other" },
 ];
 
+const CITIES = ["Delhi", "Mumbai", "Chennai", "Pune"];
+
 const UNITS: Record<ActionCategory, string> = {
   tree_planting: "trees",
   waste_cleanup: "kg",
@@ -42,6 +44,7 @@ export default function LogAction() {
   const [category, setCategory] = useState<ActionCategory>("tree_planting");
   const [quantity, setQuantity] = useState<string>("");
   const [description, setDescription] = useState<string>("");
+  const [city, setCity] = useState<string>("Mumbai");
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -76,6 +79,7 @@ export default function LogAction() {
     formData.append("quantity", qty.toString());
     formData.append("quantity_unit", UNITS[category]);
     formData.append("description", description);
+    formData.append("city", city);
     formData.append("file", file);
     if (communityId) {
       formData.append("community_id", communityId);
@@ -193,6 +197,22 @@ export default function LogAction() {
                 required
                 className="w-24 rounded-lg border-none bg-gray-50 px-3 py-1.5 text-right text-xs font-semibold focus:ring-terra-400"
               />
+            </div>
+
+            {/* City Selection */}
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-bold text-gray-700">City</label>
+              <select
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                className="rounded-lg border-none bg-gray-50 px-3 py-1.5 text-xs font-semibold focus:ring-terra-400"
+              >
+                {CITIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

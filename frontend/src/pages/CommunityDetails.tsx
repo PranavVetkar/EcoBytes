@@ -5,7 +5,8 @@ import { getCurrentUser } from "../services/auth";
 import CreateEventModal from "../components/CreateEventModal";
 import ManageRsvpsModal from "../components/ManageRsvpsModal";
 import ActionDetailsModal from "../components/ActionDetailsModal";
-import type { Community, EcoAction } from "../types";
+import AddCoordinatorModal from "../components/AddCoordinatorModal";
+import type { Community, EcoAction, CoordinatorProfile } from "../types";
 
 export default function CommunityDetails() {
     const { id } = useParams<{ id: string }>();
@@ -18,10 +19,15 @@ export default function CommunityDetails() {
     const [selectedEvent, setSelectedEvent] = useState<{ id: string, title: string } | null>(null);
     const [selectedAction, setSelectedAction] = useState<EcoAction | null>(null);
     const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+    const [coordinators, setCoordinators] = useState<CoordinatorProfile[]>([]);
+    const [isAddCoordModalOpen, setIsAddCoordModalOpen] = useState(false);
     const [userRsvps, setUserRsvps] = useState<Record<string, string>>({}); // eventId -> status
 
     const user = getCurrentUser();
     const isAdmin = user?.uid === community?.admin_id;
+    const [userProfile, setUserProfile] = useState<{ area?: string } | null>(null);
+    const isCoordinator = community?.coordinator_ids?.includes(user?.uid || "");
+    const [activeTab, setActiveTab] = useState<"all" | "review">("all");
 
     const fetchData = async () => {
         try {
@@ -33,6 +39,16 @@ export default function CommunityDetails() {
             // Fetch recent actions for this community
             const feedRes = await api.get<{ items: EcoAction[] }>(`/feed/?community_id=${id}`);
             setPosts(feedRes.data.items);
+
+            // Fetch coordinators
+            const coordRes = await api.get<CoordinatorProfile[]>(`/communities/${id}/coordinators`);
+            setCoordinators(coordRes.data);
+
+            // Fetch user profile for area check
+            if (user?.uid) {
+                const userRes = await api.get<{ area?: string }>(`/users/me`);
+                setUserProfile(userRes.data);
+            }
 
             // Fetch user's RSVPs if any (we'll need a way to check registration status)
             // For now, let's just mark the ones we know about locally or fetch all registrations for this user
@@ -223,6 +239,39 @@ export default function CommunityDetails() {
                     )}
                 </div>
 
+                <div>
+                    <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-sm font-black uppercase tracking-widest text-gray-400">Coordinators</h2>
+                        {isAdmin && (
+                            <button
+                                onClick={() => setIsAddCoordModalOpen(true)}
+                                className="rounded-full bg-terra-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-terra-600 ring-1 ring-terra-100 transition-all hover:bg-terra-600 hover:text-white"
+                            >
+                                + Add Coordinator
+                            </button>
+                        )}
+                    </div>
+                    {coordinators.length > 0 ? (
+                        <div className="grid grid-cols-2 gap-3">
+                            {coordinators.map(coord => (
+                                <div key={coord.uid} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-gray-100">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-terra-100 text-terra-700 font-black text-xs">
+                                        {coord.name.charAt(0)}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="truncate text-xs font-black text-terra-950">{coord.name}</p>
+                                        <p className="truncate text-[9px] font-bold text-gray-400 uppercase tracking-widest">📍 {coord.area || "Eco City"}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="rounded-2xl border-2 border-dashed border-gray-100 bg-gray-50/50 p-4 text-center">
+                            <p className="text-[10px] text-gray-400 italic">No coordinators assigned.</p>
+                        </div>
+                    )}
+                </div>
+
                 {isCreateModalOpen && (
                     <CreateEventModal
                         communityId={community.id}
@@ -238,14 +287,25 @@ export default function CommunityDetails() {
                         onClose={() => setIsManageModalOpen(false)}
                     />
                 )}
+
+                {isAddCoordModalOpen && (
+                    <AddCoordinatorModal
+                        communityId={community.id}
+                        onClose={() => setIsAddCoordModalOpen(false)}
+                        onSuccess={(msg) => {
+                            alert(msg);
+                            fetchData();
+                        }}
+                    />
+                )}
             </div>
 
             <hr className="my-8 border-gray-100 border-2 mx-5" />
 
             {/* Recent Posts Section */}
             <div className="px-5">
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-sm font-black uppercase tracking-widest text-gray-400">Recent Activity</h2>
+                <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-sm font-black uppercase tracking-widest text-gray-400">Activity</h2>
                     <Link
                         to="/log"
                         state={{ community_id: community.id }}
@@ -254,6 +314,24 @@ export default function CommunityDetails() {
                         + Post Activity
                     </Link>
                 </div>
+
+                {/* Tabs for Coordinator */}
+                {isCoordinator && (
+                    <div className="flex gap-4 border-b border-gray-100 mb-6">
+                        <button
+                            onClick={() => setActiveTab("all")}
+                            className={`pb-3 text-xs font-black uppercase tracking-widest transition-all ${activeTab === "all" ? "border-b-2 border-terra-500 text-terra-950" : "text-gray-400"}`}
+                        >
+                            Recent
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("review")}
+                            className={`pb-3 text-xs font-black uppercase tracking-widest transition-all ${activeTab === "review" ? "border-b-2 border-terra-500 text-terra-950" : "text-gray-400"}`}
+                        >
+                            Review Needed
+                        </button>
+                    </div>
+                )}
 
                 {posts.length === 0 ? (
                     <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 p-8 text-center mt-4">
@@ -264,29 +342,45 @@ export default function CommunityDetails() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-3 gap-2">
-                        {posts.map(post => {
-                            const mediaUrl = post.image_url || post.video_url || "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&q=80&w=400";
-                            return (
-                                <button
-                                    key={post.id}
-                                    onClick={() => {
-                                        setSelectedAction(post);
-                                        setIsActionModalOpen(true);
-                                    }}
-                                    className="group relative aspect-square overflow-hidden rounded-xl bg-gray-100 text-left"
-                                >
-                                    <img
-                                        src={mediaUrl}
-                                        alt="Action"
-                                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 flex flex-col justify-end p-2 text-white">
-                                        <p className="text-[10px] font-bold truncate">{post.category.replace(/_/g, " ")}</p>
-                                        <p className="text-[9px] truncate">{post.quantity} {post.quantity_unit}</p>
-                                    </div>
-                                </button>
-                            );
-                        })}
+                        {posts
+                            .filter(post => {
+                                if (activeTab === "review") {
+                                    // Admins see all pending, Coordinators see pending in their city
+                                    const isPending = post.verification_status === "pending";
+                                    if (!isPending) return false;
+                                    if (isAdmin) return true;
+                                    return post.city === userProfile?.area;
+                                }
+                                return true;
+                            })
+                            .map(post => {
+                                const mediaUrl = post.image_url || post.video_url || "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&q=80&w=400";
+                                return (
+                                    <button
+                                        key={post.id}
+                                        onClick={() => {
+                                            setSelectedAction(post);
+                                            setIsActionModalOpen(true);
+                                        }}
+                                        className="group relative aspect-square overflow-hidden rounded-xl bg-gray-100 text-left"
+                                    >
+                                        <img
+                                            src={mediaUrl}
+                                            alt="Action"
+                                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 flex flex-col justify-end p-2 text-white">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-[10px] font-bold truncate">{post.category.replace(/_/g, " ")}</p>
+                                                {post.verification_status === "pending" && (
+                                                    <span className="h-2 w-2 rounded-full bg-amber-400 ring-2 ring-white" />
+                                                )}
+                                            </div>
+                                            <p className="text-[9px] truncate">{post.quantity} {post.quantity_unit}</p>
+                                        </div>
+                                    </button>
+                                );
+                            })}
                     </div>
                 )}
             </div>
@@ -296,6 +390,9 @@ export default function CommunityDetails() {
                     action={selectedAction}
                     onClose={() => setIsActionModalOpen(false)}
                     onDelete={(id) => setPosts(prev => prev.filter(p => p.id !== id))}
+                    onStatusUpdate={(id, newStatus) => {
+                        setPosts(prev => prev.map(p => p.id === id ? { ...p, verification_status: newStatus as any } : p));
+                    }}
                 />
             )}
 
