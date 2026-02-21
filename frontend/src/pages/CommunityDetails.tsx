@@ -4,6 +4,7 @@ import api from "../services/api";
 import { getCurrentUser } from "../services/auth";
 import CreateEventModal from "../components/CreateEventModal";
 import ManageRsvpsModal from "../components/ManageRsvpsModal";
+import ActionDetailsModal from "../components/ActionDetailsModal";
 import type { Community, EcoAction } from "../types";
 
 export default function CommunityDetails() {
@@ -15,6 +16,8 @@ export default function CommunityDetails() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isManageModalOpen, setIsManageModalOpen] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState<{ id: string, title: string } | null>(null);
+    const [selectedAction, setSelectedAction] = useState<EcoAction | null>(null);
+    const [isActionModalOpen, setIsActionModalOpen] = useState(false);
     const [userRsvps, setUserRsvps] = useState<Record<string, string>>({}); // eventId -> status
 
     const user = getCurrentUser();
@@ -241,7 +244,16 @@ export default function CommunityDetails() {
 
             {/* Recent Posts Section */}
             <div className="px-5">
-                <h2 className="text-sm font-black uppercase tracking-widest text-gray-400 mb-4">Recent Activity</h2>
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-sm font-black uppercase tracking-widest text-gray-400">Recent Activity</h2>
+                    <Link
+                        to="/log"
+                        state={{ community_id: community.id }}
+                        className="rounded-full bg-terra-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-terra-600 ring-1 ring-terra-100 transition-all hover:bg-terra-600 hover:text-white"
+                    >
+                        + Post Activity
+                    </Link>
+                </div>
 
                 {posts.length === 0 ? (
                     <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 p-8 text-center mt-4">
@@ -255,7 +267,14 @@ export default function CommunityDetails() {
                         {posts.map(post => {
                             const mediaUrl = post.image_url || post.video_url || "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&q=80&w=400";
                             return (
-                                <div key={post.id} className="group relative aspect-square overflow-hidden rounded-xl bg-gray-100">
+                                <button
+                                    key={post.id}
+                                    onClick={() => {
+                                        setSelectedAction(post);
+                                        setIsActionModalOpen(true);
+                                    }}
+                                    className="group relative aspect-square overflow-hidden rounded-xl bg-gray-100 text-left"
+                                >
                                     <img
                                         src={mediaUrl}
                                         alt="Action"
@@ -265,12 +284,20 @@ export default function CommunityDetails() {
                                         <p className="text-[10px] font-bold truncate">{post.category.replace(/_/g, " ")}</p>
                                         <p className="text-[9px] truncate">{post.quantity} {post.quantity_unit}</p>
                                     </div>
-                                </div>
+                                </button>
                             );
                         })}
                     </div>
                 )}
             </div>
+
+            {isActionModalOpen && selectedAction && (
+                <ActionDetailsModal
+                    action={selectedAction}
+                    onClose={() => setIsActionModalOpen(false)}
+                    onDelete={(id) => setPosts(prev => prev.filter(p => p.id !== id))}
+                />
+            )}
 
         </div>
     );

@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 class CommentBase(BaseModel):
     content: str
-    action_id: str
+    action_id: Optional[str] = None
 
 class CommentCreate(CommentBase):
     pass

@@ -132,6 +132,15 @@ export interface Message {
   sent_at: Date;
 }
 
+export interface Comment {
+  id: string;
+  action_id: string;
+  author_id: string;
+  author_name: string;
+  content: string;
+  timestamp: Date;
+}
+
 export interface Reward {
   id: string;
   item_name: string;
