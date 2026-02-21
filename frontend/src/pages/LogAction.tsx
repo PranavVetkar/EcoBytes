@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
 import type { ActionCategory } from "../types";
 
@@ -33,7 +33,11 @@ const UNITS: Record<ActionCategory, string> = {
 
 export default function LogAction() {
   const navigate = useNavigate();
+  const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const initialCommunityId = (location.state as any)?.community_id || null;
+  const [communityId] = useState<string | null>(initialCommunityId);
 
   const [category, setCategory] = useState<ActionCategory>("tree_planting");
   const [quantity, setQuantity] = useState<string>("");
@@ -73,15 +77,18 @@ export default function LogAction() {
     formData.append("quantity_unit", UNITS[category]);
     formData.append("description", description);
     formData.append("file", file);
+    if (communityId) {
+      formData.append("community_id", communityId);
+    }
 
     setSubmitting(true);
     try {
-      await api.post("/actions", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      navigate("/feed");
+      await api.post("/actions/", formData);
+      if (communityId) {
+        navigate(`/communities/${communityId}`);
+      } else {
+        navigate("/feed");
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Submission failed. Try again.");
     } finally {

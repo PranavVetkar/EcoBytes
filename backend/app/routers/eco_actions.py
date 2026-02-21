@@ -2,7 +2,6 @@ from datetime import datetime
 import uuid
 from typing import Optional
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, status
-from firebase_admin import storage
 from google.cloud import firestore
 
 from app.dependencies import CurrentUser
@@ -43,20 +42,40 @@ async def create_eco_action(
     Stores metadata in Firestore and uploads the file to Firebase Storage.
     """
     db = get_firestore_client()
-    bucket = storage.bucket()
+    import cloudinary
+    import cloudinary.uploader
+    import os
+    from app.config import settings
+    
+    # Configure Cloudinary
+    if settings.cloudinary_cloud_name and settings.cloudinary_api_key and settings.cloudinary_api_secret:
+        print(f"DEBUG: Configuring Cloudinary with cloud_name: {settings.cloudinary_cloud_name}")
+        cloudinary.config(
+            cloud_name=settings.cloudinary_cloud_name,
+            api_key=settings.cloudinary_api_key,
+            api_secret=settings.cloudinary_api_secret,
+            secure=True
+        )
+    else:
+        print("DEBUG: Cloudinary credentials are INCOMPLETE in settings!")
+        # Fallback to URL if still present in env for some reason
+        cloudinary_url = os.getenv("CLOUDINARY_URL")
+        if cloudinary_url:
+            print("DEBUG: Falling back to CLOUDINARY_URL environment variable")
+            cloudinary.config(cloudinary_url=cloudinary_url)
     
     action_id = str(uuid.uuid4())
-    file_ext = file.filename.split(".")[-1] if file.filename else "bin"
-    file_path = f"eco_actions/{user['uid']}/{action_id}.{file_ext}"
     
-    # Upload file
-    blob = bucket.blob(file_path)
-    blob.upload_from_string(
-        await file.read(),
-        content_type=file.content_type
+    # Upload file to Cloudinary
+    print(f"DEBUG: Attempting Cloudinary upload for action_id: {action_id}")
+    upload_result = cloudinary.uploader.upload(
+        file.file,
+        folder=f"eco_actions/{user['uid']}",
+        public_id=action_id,
+        resource_type="auto"
     )
-    blob.make_public()
-    file_url = blob.public_url
+    print("DEBUG: Cloudinary upload successful")
+    file_url = upload_result.get("secure_url")
     
     is_video = file.content_type.startswith("video/") if file.content_type else False
     

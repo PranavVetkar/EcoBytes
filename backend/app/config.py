@@ -12,12 +12,16 @@ class Settings(BaseSettings):
         env_file=str(_ENV_FILE),
         env_file_encoding="utf-8",
         case_sensitive=False,
+        extra="ignore",
     )
 
     # Firebase Admin
     firebase_service_account_base64: str = ""
     firebase_project_id: str = ""
     firebase_storage_bucket: str = ""
+    cloudinary_cloud_name: str = ""
+    cloudinary_api_key: str = ""
+    cloudinary_api_secret: str = ""
 
     # OpenAI
     openai_api_key: str = ""

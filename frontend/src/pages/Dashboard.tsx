@@ -26,10 +26,9 @@ export default function Dashboard({ user, profile, onRefresh }: DashboardProps) 
         const userComms = commRes.data.items.filter(c => profile.joined_community_ids.includes(c.id));
         setJoinedCommunities(userComms);
 
-        // Fetch user's recent actions from the feed (in a real app, this would be a dedicated /users/me/actions endpoint)
-        const feedRes = await api.get<{ items: any[] }>("/feed/");
-        const userActions = feedRes.data.items.filter(a => a.author_id === profile.uid);
-        setRecentActions(userActions);
+        // Fetch user's recent actions directly
+        const actionsRes = await api.get<{ items: any[] }>("/actions/");
+        setRecentActions(actionsRes.data.items);
       } catch (err) {
         console.error("Failed to fetch dashboard data:", err);
       } finally {

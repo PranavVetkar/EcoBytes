@@ -48,3 +48,6 @@ app.include_router(verification.router,  prefix="/api/v1/verification",  tags=["
 @app.get("/health", tags=["health"])
 async def health():
     return {"status": "ok", "env": settings.app_env}
+
+
+# Trigger reload

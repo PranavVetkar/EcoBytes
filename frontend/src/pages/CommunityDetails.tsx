@@ -158,7 +158,7 @@ export default function CommunityDetails() {
                 {posts.length === 0 ? (
                     <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 p-8 text-center mt-4">
                         <p className="text-gray-500 font-medium">No actions posted yet.</p>
-                        <Link to="/log" className="mt-4 inline-block bg-terra-600 text-white font-bold py-2 px-6 rounded-full text-sm shadow-sm">
+                        <Link to="/log" state={{ community_id: community.id }} className="mt-4 inline-block bg-terra-600 text-white font-bold py-2 px-6 rounded-full text-sm shadow-sm">
                             Be the first to post
                         </Link>
                     </div>
