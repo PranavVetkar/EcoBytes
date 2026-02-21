@@ -16,13 +16,15 @@ async def list_notifications(user: CurrentUser):
     
     docs = db.collection(NOTIFICATIONS_COLLECTION) \
         .where("user_id", "==", user["uid"]) \
-        .order_by("timestamp", direction=firestore.Query.DESCENDING) \
         .limit(50) \
         .stream()
     
     notifications = []
     async for doc in docs:
         notifications.append(doc.to_dict())
+    
+    # Sort in memory to avoid needing a composite index
+    notifications.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
         
     return notifications
 
