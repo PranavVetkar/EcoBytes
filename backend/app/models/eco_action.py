@@ -56,6 +56,7 @@ class EcoAction(BaseModel):
 
     id: str
     author_id: str
+    author_name: Optional[str] = None
     image_url: Optional[str] = None
     video_url: Optional[str] = None
     category: ActionCategory

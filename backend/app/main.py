@@ -6,6 +6,7 @@ from app.routers import auth
 from app.routers import (
     communities,
     eco_actions,
+    comments,
     events,
     feed,
     rewards,
@@ -37,6 +38,7 @@ app.add_middleware(
 app.include_router(auth.router,          prefix="/api/v1/auth",          tags=["auth"])
 app.include_router(users.router,         prefix="/api/v1/users",         tags=["users"])
 app.include_router(eco_actions.router,   prefix="/api/v1/actions",       tags=["eco-actions"])
+app.include_router(comments.router,      prefix="/api/v1/comments",      tags=["comments"])
 app.include_router(feed.router,          prefix="/api/v1/feed",          tags=["feed"])
 app.include_router(communities.router,   prefix="/api/v1/communities",   tags=["communities"])
 app.include_router(events.router,        prefix="/api/v1/events",        tags=["events"])

@@ -79,9 +79,14 @@ async def create_eco_action(
     
     is_video = file.content_type.startswith("video/") if file.content_type else False
     
+    # Fetch author name
+    user_doc = await db.collection("users").document(user["uid"]).get()
+    author_name = user_doc.to_dict().get("name") if user_doc.exists else "EcoWarrior"
+    
     new_action = EcoAction(
         id=action_id,
         author_id=user["uid"],
+        author_name=author_name,
         category=category,
         quantity=quantity,
         quantity_unit=quantity_unit,
