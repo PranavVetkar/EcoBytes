@@ -3,6 +3,20 @@ import api from "../services/api";
 import { getCurrentUser } from "../services/auth";
 import type { EcoAction, Comment } from "../types";
 
+const POINT_MAPPING: Record<string, number> = {
+    tree_planting: 80,
+    waste_cleanup: 60,
+    composting: 50,
+    cycling: 40,
+    public_transport: 35,
+    carpooling: 35,
+    water_conservation: 30,
+    energy_saving: 30,
+    recycling: 25,
+    sustainable_purchase: 25,
+    other: 10
+};
+
 interface ActionDetailsModalProps {
     action: EcoAction;
     onClose: () => void;
@@ -17,6 +31,7 @@ export default function ActionDetailsModal({ action, onClose, onDelete, onStatus
     const [submittingComment, setSubmittingComment] = useState(false);
     const [reviewing, setReviewing] = useState(false);
     const [canReview, setCanReview] = useState(false);
+    const [overridePoints, setOverridePoints] = useState<string>("");
 
     const user = getCurrentUser();
     const isAuthor = user?.uid === action.author_id;
@@ -61,6 +76,10 @@ export default function ActionDetailsModal({ action, onClose, onDelete, onStatus
     useEffect(() => {
         fetchComments();
         checkReviewPermissions();
+
+        // Set initial override points
+        const base = POINT_MAPPING[action.category] || 10;
+        setOverridePoints(base.toString());
     }, [action.id]);
 
     const handlePostComment = async () => {
@@ -83,7 +102,10 @@ export default function ActionDetailsModal({ action, onClose, onDelete, onStatus
     const handleUpdateStatus = async (status: "verified" | "rejected") => {
         try {
             setReviewing(true);
-            const res = await api.patch(`/actions/${action.id}/status`, { status });
+            const res = await api.patch(`/actions/${action.id}/status`, {
+                status,
+                points: status === "verified" ? parseFloat(overridePoints) : undefined
+            });
             alert(res.data.message);
             if (onStatusUpdate) onStatusUpdate(action.id, status);
             onClose();
@@ -178,29 +200,42 @@ export default function ActionDetailsModal({ action, onClose, onDelete, onStatus
                                     {action.quantity} <span className="text-sm font-bold text-gray-400 text-lowercase">{action.quantity_unit}</span>
                                 </p>
                             </div>
-                            <div className="rounded-2xl bg-white px-4 py-2 shadow-sm ring-1 ring-gray-100 text-center">
-                                <span className="block text-[10px] font-black uppercase tracking-widest text-gray-400">Points</span>
-                                <span className="text-lg font-black text-terra-600">+{action.points_earned}</span>
-                            </div>
+                            {action.verification_status === "verified" && (
+                                <div className="rounded-2xl bg-white px-4 py-2 shadow-sm ring-1 ring-gray-100 text-center min-w-[80px]">
+                                    <span className="block text-[10px] font-black uppercase tracking-widest text-gray-400">Earned</span>
+                                    <span className="text-lg font-black text-terra-600">+{action.points_earned}</span>
+                                </div>
+                            )}
                         </div>
 
                         {/* Coordinator Controls */}
                         {canReview && action.verification_status === "pending" && (
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => handleUpdateStatus("verified")}
-                                    disabled={reviewing}
-                                    className="flex-1 rounded-xl bg-terra-600 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-terra-700 active:scale-95 disabled:opacity-50"
-                                >
-                                    {reviewing ? "Processing..." : "Approve"}
-                                </button>
-                                <button
-                                    onClick={() => handleUpdateStatus("rejected")}
-                                    disabled={reviewing}
-                                    className="flex-1 rounded-xl bg-red-50 py-3 text-[10px] font-black uppercase tracking-widest text-red-600 ring-1 ring-red-100 transition-all hover:bg-red-100 active:scale-95 disabled:opacity-50"
-                                >
-                                    Reject
-                                </button>
+                            <div className="flex flex-col gap-3">
+                                <div className="flex items-center justify-between rounded-xl bg-gray-50 p-3 ring-1 ring-gray-100">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Award Points</label>
+                                    <input
+                                        type="number"
+                                        value={overridePoints}
+                                        onChange={(e) => setOverridePoints(e.target.value)}
+                                        className="w-20 rounded-lg border-none bg-white px-2 py-1 text-right text-xs font-black text-terra-600 ring-1 ring-gray-100 focus:ring-terra-400"
+                                    />
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handleUpdateStatus("verified")}
+                                        disabled={reviewing}
+                                        className="flex-1 rounded-xl bg-terra-600 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-terra-700 active:scale-95 disabled:opacity-50"
+                                    >
+                                        {reviewing ? "Processing..." : "Approve"}
+                                    </button>
+                                    <button
+                                        onClick={() => handleUpdateStatus("rejected")}
+                                        disabled={reviewing}
+                                        className="flex-1 rounded-xl bg-red-50 py-3 text-[10px] font-black uppercase tracking-widest text-red-600 ring-1 ring-red-100 transition-all hover:bg-red-100 active:scale-95 disabled:opacity-50"
+                                    >
+                                        Reject
+                                    </button>
+                                </div>
                             </div>
                         )}
 

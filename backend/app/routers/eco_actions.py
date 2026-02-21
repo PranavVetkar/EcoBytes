@@ -192,10 +192,26 @@ async def delete_eco_action(action_id: str, user: CurrentUser):
 async def update_action_status(action_id: str, payload: dict, user: CurrentUser):
     """
     Update the verification status of an eco-action.
-    Coordinators and Admins can approve/reject if they belong to the same community
-    and (for coordinators) the same city.
+    ONLY Coordinators can approve/reject if they belong to the same community
+    and same city.
     """
+    POINT_MAPPING = {
+        ActionCategory.TREE_PLANTING: 80.0,
+        ActionCategory.WASTE_CLEANUP: 60.0,
+        ActionCategory.COMPOSTING: 50.0,
+        ActionCategory.CYCLING: 40.0,
+        ActionCategory.PUBLIC_TRANSPORT: 35.0,
+        ActionCategory.CARPOOLING: 35.0,
+        ActionCategory.WATER_CONSERVATION: 30.0,
+        ActionCategory.ENERGY_SAVING: 30.0,
+        ActionCategory.RECYCLING: 25.0,
+        ActionCategory.SUSTAINABLE_PURCHASE: 25.0,
+        ActionCategory.OTHER: 10.0
+    }
+
     new_status = payload.get("status")
+    override_points = payload.get("points") # Optional override from coordinator
+    
     if new_status not in [VerificationStatus.VERIFIED, VerificationStatus.REJECTED]:
         raise HTTPException(status_code=400, detail="Invalid status. Must be 'verified' or 'rejected'.")
 
@@ -239,8 +255,13 @@ async def update_action_status(action_id: str, payload: dict, user: CurrentUser)
     message = f"Action {new_status}"
 
     if new_status == VerificationStatus.VERIFIED and action_data.get("verification_status") != VerificationStatus.VERIFIED:
-        # Simple point logic: 10 points per action for now
-        points = 10.0
+        if override_points is not None:
+            points = float(override_points)
+        else:
+            # Get points from mapping based on category (per action)
+            category = action_data.get("category")
+            points = POINT_MAPPING.get(category, 10.0)
+        
         updates["points_earned"] = points
         
         # Increment user's total points

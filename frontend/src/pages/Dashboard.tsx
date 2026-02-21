@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 import { logout as authLogout } from "../services/auth";
-import type { AuthUser, UserProfile, Community } from "../types";
+import ActionDetailsModal from "../components/ActionDetailsModal";
+import type { AuthUser, UserProfile, Community, EcoAction } from "../types";
 
 interface DashboardProps {
   user: AuthUser | null;
@@ -14,6 +15,7 @@ export default function Dashboard({ user, profile, onRefresh }: DashboardProps) 
   const [joinedCommunities, setJoinedCommunities] = useState<Community[]>([]);
   const [recentActions, setRecentActions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedAction, setSelectedAction] = useState<EcoAction | null>(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -208,7 +210,11 @@ export default function Dashboard({ user, profile, onRefresh }: DashboardProps) 
           ) : (
             <div className="grid grid-cols-3 gap-1">
               {recentActions.slice(0, 9).map((action) => (
-                <div key={action.id} className="aspect-square rounded-lg bg-gray-100 overflow-hidden relative group">
+                <div
+                  key={action.id}
+                  className="aspect-square rounded-lg bg-gray-100 overflow-hidden relative group cursor-pointer"
+                  onClick={() => setSelectedAction(action)}
+                >
                   {action.video_url ? (
                     <div className="h-full w-full bg-black flex items-center justify-center text-white">
                       <span className="text-xs">▶️</span>
@@ -228,7 +234,10 @@ export default function Dashboard({ user, profile, onRefresh }: DashboardProps) 
                   </div>
                   {/* Delete Button */}
                   <button
-                    onClick={() => handleActionDelete(action.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleActionDelete(action.id);
+                    }}
                     className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-white opacity-0 group-hover:opacity-100 transition hover:bg-red-500 backdrop-blur-md"
                     title="Delete Action"
                   >
@@ -240,6 +249,19 @@ export default function Dashboard({ user, profile, onRefresh }: DashboardProps) 
           )}
         </div>
       </main>
+
+      {/* Action Details Modal */}
+      {selectedAction && (
+        <ActionDetailsModal
+          action={selectedAction}
+          onClose={() => setSelectedAction(null)}
+          onDelete={(id) => {
+            setRecentActions(prev => prev.filter(a => a.id !== id));
+            onRefresh();
+            setSelectedAction(null);
+          }}
+        />
+      )}
     </div>
   );
 }

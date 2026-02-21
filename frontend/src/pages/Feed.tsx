@@ -135,6 +135,13 @@ function SocialPost({ post, onDelete }: { post: any; onDelete: (id: string) => v
               {post.category?.replace(/_/g, " ")}
             </span>
           </div>
+          {post.verification_status === "verified" && (
+            <div className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 ring-1 bg-terra-50 ring-terra-100`}>
+              <span className={`text-[10px] font-black uppercase tracking-widest text-terra-600`}>
+                +{post.points_earned} pts
+              </span>
+            </div>
+          )}
         </div>
 
         <p className="text-sm font-black text-terra-950 mb-1.5">{((post.likes_count || 0) + (liked ? 1 : 0)).toLocaleString()} likes</p>

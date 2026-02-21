@@ -20,16 +20,16 @@ const CATEGORIES: { value: ActionCategory; label: string }[] = [
 const CITIES = ["Delhi", "Mumbai", "Chennai", "Pune"];
 
 const UNITS: Record<ActionCategory, string> = {
-  tree_planting: "trees",
-  waste_cleanup: "kg",
-  recycling: "kg",
-  composting: "setups",
-  water_conservation: "actions",
-  energy_saving: "kWh",
+  tree_planting: "saplings",
+  waste_cleanup: "sessions/bags",
+  recycling: "batches",
+  composting: "setups/actions",
+  water_conservation: "concrete actions",
+  energy_saving: "concrete actions",
   carpooling: "trips",
   public_transport: "trips",
-  cycling: "km",
-  sustainable_purchase: "items",
+  cycling: "trips",
+  sustainable_purchase: "purchases",
   other: "actions",
 };
 
