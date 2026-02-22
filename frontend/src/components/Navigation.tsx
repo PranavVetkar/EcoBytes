@@ -5,6 +5,25 @@ export default function Navigation() {
 
   const navItems = [
     {
+      label: "Profile",
+      path: "/",
+      icon: (active: boolean) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill={active ? "currentColor" : "none"}
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-6 w-6"
+        >
+          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      ),
+    },
+    {
       label: "Home",
       path: "/feed",
       icon: (active: boolean) => (
@@ -102,33 +121,14 @@ export default function Navigation() {
         </svg>
       ),
     },
-    {
-      label: "Profile",
-      path: "/",
-      icon: (active: boolean) => (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill={active ? "currentColor" : "none"}
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="h-6 w-6"
-        >
-          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
-      ),
-    },
   ];
 
   return (
-    <nav className="fixed left-0 top-0 bottom-0 z-50 w-20 flex flex-col items-center py-8 border-r border-eco-200 bg-white/70 backdrop-blur-xl shadow-2xl shadow-eco-900/5">
+    <nav className="fixed left-0 top-0 bottom-0 z-50 w-20 flex flex-col items-center py-8 border-r border-garden-lavender bg-garden-cream/80 backdrop-blur-xl shadow-2xl shadow-garden-olive/5">
       {/* Mini Logo */}
-      <div className="mb-12 flex h-12 w-12 items-center justify-center rounded-2xl bg-garden-olive shadow-lg shadow-garden-olive/30 transition-transform hover:scale-105 active:scale-95 cursor-pointer">
+      <Link to="/" className="mb-12 flex h-12 w-12 items-center justify-center rounded-2xl bg-garden-olive shadow-lg shadow-garden-olive/30 transition-transform hover:scale-105 active:scale-95 cursor-pointer">
         <span className="font-black text-garden-cream text-lg">EB</span>
-      </div>
+      </Link>
 
       <div className="flex flex-col items-center gap-8 w-full">
         {navItems.map((item) => {
@@ -156,13 +156,13 @@ export default function Navigation() {
         })}
       </div>
 
-      {/* Logout / Bottom Action */}
+      {/* Settings / Bottom Action */}
       <div className="mt-auto">
         <button
-          className="h-10 w-10 flex items-center justify-center rounded-2xl bg-white border border-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50 hover:border-red-100 transition-all active:scale-90"
+          className="h-10 w-10 flex items-center justify-center rounded-2xl bg-white/40 border border-garden-lavender text-garden-olive/40 hover:text-garden-olive hover:bg-white/60 transition-all active:scale-90 shadow-sm"
           title="Settings"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
             <circle cx="12" cy="12" r="3" />
           </svg>

@@ -48,68 +48,90 @@ async def create_eco_action(
     import os
     from app.config import settings
     
-    # Configure Cloudinary
-    if settings.cloudinary_cloud_name and settings.cloudinary_api_key and settings.cloudinary_api_secret:
-        print(f"DEBUG: Configuring Cloudinary with cloud_name: {settings.cloudinary_cloud_name}")
-        cloudinary.config(
-            cloud_name=settings.cloudinary_cloud_name,
-            api_key=settings.cloudinary_api_key,
-            api_secret=settings.cloudinary_api_secret,
-            secure=True
+    try:
+        # Configure Cloudinary
+        if settings.cloudinary_cloud_name and settings.cloudinary_api_key and settings.cloudinary_api_secret:
+            print(f"DEBUG: Configuring Cloudinary with cloud_name: {settings.cloudinary_cloud_name}")
+            cloudinary.config(
+                cloud_name=settings.cloudinary_cloud_name,
+                api_key=settings.cloudinary_api_key,
+                api_secret=settings.cloudinary_api_secret,
+                secure=True
+            )
+        else:
+            print("DEBUG: Cloudinary credentials are INCOMPLETE in settings!")
+            # Fallback to URL if still present in env for some reason
+            cloudinary_url = os.getenv("CLOUDINARY_URL")
+            if cloudinary_url:
+                print("DEBUG: Falling back to CLOUDINARY_URL environment variable")
+                cloudinary.config(cloudinary_url=cloudinary_url)
+            else:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Cloudinary credentials are not configured in .env"
+                )
+        
+        action_id = str(uuid.uuid4())
+        
+        # Read file contents first for more reliable upload
+        file_content = await file.read()
+        
+        # Upload file to Cloudinary
+        print(f"DEBUG: Attempting Cloudinary upload for action_id: {action_id}")
+        upload_result = cloudinary.uploader.upload(
+            file_content,
+            folder=f"eco_actions/{user['uid']}",
+            public_id=action_id,
+            resource_type="auto"
         )
-    else:
-        print("DEBUG: Cloudinary credentials are INCOMPLETE in settings!")
-        # Fallback to URL if still present in env for some reason
-        cloudinary_url = os.getenv("CLOUDINARY_URL")
-        if cloudinary_url:
-            print("DEBUG: Falling back to CLOUDINARY_URL environment variable")
-            cloudinary.config(cloudinary_url=cloudinary_url)
-    
-    action_id = str(uuid.uuid4())
-    
-    # Upload file to Cloudinary
-    print(f"DEBUG: Attempting Cloudinary upload for action_id: {action_id}")
-    upload_result = cloudinary.uploader.upload(
-        file.file,
-        folder=f"eco_actions/{user['uid']}",
-        public_id=action_id,
-        resource_type="auto"
-    )
-    print("DEBUG: Cloudinary upload successful")
-    file_url = upload_result.get("secure_url")
-    
-    is_video = file.content_type.startswith("video/") if file.content_type else False
-    
-    # Fetch author name
-    user_doc = await db.collection("users").document(user["uid"]).get()
-    author_name = user_doc.to_dict().get("name") if user_doc.exists else "EcoWarrior"
-    
-    new_action = EcoAction(
-        id=action_id,
-        author_id=user["uid"],
-        author_name=author_name,
-        category=category,
-        quantity=quantity,
-        quantity_unit=quantity_unit,
-        description=description,
-        community_id=community_id,
-        image_url=file_url if not is_video else None,
-        video_url=file_url if is_video else None,
-        timestamp=datetime.utcnow(),
-        verification_status=VerificationStatus.PENDING,
-        points_earned=0.0, # Will be updated after verification
-        city=city
-    )
-    
-    await db.collection(ACTIONS_COLLECTION).document(action_id).set(new_action.model_dump())
-    
-    # Update user's post count
-    user_ref = db.collection("users").document(user["uid"])
-    await user_ref.update({
-        "post_count": firestore.Increment(1)
-    })
-    
-    return new_action
+        print("DEBUG: Cloudinary upload successful")
+        file_url = upload_result.get("secure_url")
+        
+        is_video = file.content_type.startswith("video/") if file.content_type else False
+        
+        # Fetch author name
+        user_doc = await db.collection("users").document(user["uid"]).get()
+        author_name = user_doc.to_dict().get("name") if user_doc.exists else "EcoWarrior"
+        
+        new_action = EcoAction(
+            id=action_id,
+            author_id=user["uid"],
+            author_name=author_name,
+            category=category,
+            quantity=quantity,
+            quantity_unit=quantity_unit,
+            description=description,
+            community_id=community_id,
+            image_url=file_url if not is_video else None,
+            video_url=file_url if is_video else None,
+            timestamp=datetime.utcnow(),
+            verification_status=VerificationStatus.PENDING,
+            points_earned=0.0, # Will be updated after verification
+            city=city
+        )
+        
+        await db.collection(ACTIONS_COLLECTION).document(action_id).set(new_action.model_dump())
+        
+        # Update user's post count
+        user_ref = db.collection("users").document(user["uid"])
+        await user_ref.update({
+            "post_count": firestore.Increment(1)
+        })
+        
+        return new_action
+    except Exception as e:
+        import traceback
+        error_msg = f"ERROR creating eco action: {str(e)}\n{traceback.format_exc()}"
+        print(error_msg)
+        with open("backend_error_log.txt", "a") as f:
+            f.write(f"\n--- {datetime.utcnow()} ---\n{error_msg}\n")
+            
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal Server Error: {str(e)}"
+        )
 
 
 @router.get("/{action_id}")

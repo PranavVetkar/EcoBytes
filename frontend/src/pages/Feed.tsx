@@ -207,47 +207,8 @@ function SocialPost({ post, onDelete }: { post: any; onDelete: (id: string) => v
   );
 }
 
-const HARDCODED_POSTS = [
-  {
-    id: "p1",
-    author_id: "mock-1",
-    author_name: "GreenGuardian",
-    image_url: "https://images.unsplash.com/photo-1542601906990-b4d3fb773b09?auto=format&fit=crop&w=800&q=80",
-    category: "Tree Planting",
-    description: "Just planted 5 saplings today at the neighborhood park! 🌳 Every small step counts towards a greener future. #EcoWarrior #TreePlanting",
-    likes_count: 42,
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    quantity: 5,
-    quantity_unit: "trees",
-  },
-  {
-    id: "p2",
-    author_id: "mock-2",
-    author_name: "SolarSolace",
-    image_url: "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&w=800&q=80",
-    category: "Energy Saving",
-    description: "Finally installed solar panels! Excited to reduce my carbon footprint and save on energy bills. ☀️⚡",
-    likes_count: 156,
-    timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    quantity: 1,
-    quantity_unit: "system",
-  },
-  {
-    id: "p3",
-    author_id: "mock-3",
-    author_name: "OceanDefender",
-    image_url: "https://images.unsplash.com/photo-1618477247222-acbdb0e159b3?auto=format&fit=crop&w=800&q=80",
-    category: "Waste Cleanup",
-    description: "Morning beach cleanup at Marine Drive. Collected 3 bags of plastic waste! Let's keep our oceans clean. 🌊🐚",
-    likes_count: 89,
-    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    quantity: 3,
-    quantity_unit: "bags",
-  },
-];
-
 export default function Feed() {
-  const [posts, setPosts] = useState<any[]>(HARDCODED_POSTS);
+  const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [cityStats, setCityStats] = useState<Record<string, number>>({});
 
@@ -255,8 +216,10 @@ export default function Feed() {
     const fetchFeed = async () => {
       try {
         const res = await api.get<{ items: any[] }>("/feed/");
-        // Append fetched real posts to the top of the hardcoded ones
-        setPosts([...res.data.items, ...HARDCODED_POSTS]);
+        const items = res.data.items || [];
+        // Only show real posts and filter out any that might have triggered the "EcoWarrior" fallback
+        const realPosts = items.filter(p => p.author_name && p.author_name !== "EcoWarrior");
+        setPosts(realPosts);
       } catch (err) {
         console.error("Failed to fetch feed:", err);
       } finally {
@@ -338,7 +301,7 @@ export default function Feed() {
         </div>
 
         <div className="flex-1 space-y-10">
-          {loading && posts.length === HARDCODED_POSTS.length ? (
+          {loading && posts.length === 0 ? (
             <div className="flex justify-center py-20">
               <div className="h-10 w-10 animate-spin rounded-full border-4 border-garden-olive border-t-transparent" />
             </div>

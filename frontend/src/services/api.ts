@@ -19,7 +19,7 @@ import { TOKEN_KEY } from "../constants";
 
 const api = axios.create({
   baseURL: config.api.baseUrl,
-  timeout: 10000, // 10 seconds — prevents stuck-pending requests
+  timeout: 60000, // 60 seconds — allows time for media uploads to Cloudinary
 });
 
 // Synchronously attach the JWT from localStorage before every request.

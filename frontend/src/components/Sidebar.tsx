@@ -4,7 +4,7 @@ export default function Sidebar() {
     const { profile, loading } = useAuthProfile();
 
     return (
-        <aside className="w-80 border-r border-eco-100 bg-white/40 backdrop-blur-sm h-screen overflow-y-auto hidden lg:block">
+        <aside className="w-80 border-r border-garden-lavender bg-white/40 backdrop-blur-sm h-screen overflow-y-auto hidden lg:block">
             <div className="p-6 space-y-8">
                 {/* Search */}
                 <div className="relative group">
@@ -48,22 +48,22 @@ export default function Sidebar() {
 
                 {/* Suggested Communities (Placeholder) */}
                 <div>
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 ml-1">Suggested for you</h3>
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-garden-olive/40 mb-4 ml-1">Suggested for you</h3>
                     <div className="space-y-3">
                         {[
                             { name: "Urban Forestry", members: "1.2k", icon: "🌳" },
                             { name: "Solar Enthusiasts", members: "850", icon: "☀️" },
                             { name: "Zero Waste City", members: "3.4k", icon: "♻️" }
                         ].map((comm, i) => (
-                            <div key={i} className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white transition-all cursor-pointer group shadow-sm hover:shadow-md border border-transparent hover:border-eco-50">
-                                <div className="h-10 w-10 rounded-xl bg-eco-100 flex items-center justify-center text-lg shadow-inner group-hover:scale-110 transition-transform">
+                            <div key={i} className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white transition-all cursor-pointer group shadow-sm hover:shadow-md border border-transparent hover:border-garden-lavender">
+                                <div className="h-10 w-10 rounded-xl bg-garden-cream/60 flex items-center justify-center text-lg shadow-inner group-hover:scale-110 transition-transform">
                                     {comm.icon}
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-xs font-bold text-slate-800">{comm.name}</p>
-                                    <p className="text-[10px] text-slate-400 font-medium">{comm.members} members</p>
+                                    <p className="text-xs font-bold text-garden-olive">{comm.name}</p>
+                                    <p className="text-[10px] text-garden-olive/40 font-medium">{comm.members} members</p>
                                 </div>
-                                <button className="h-7 w-7 rounded-full bg-eco-50 text-eco-600 flex items-center justify-center text-xs font-black hover:bg-eco-600 hover:text-white transition-colors">
+                                <button className="h-7 w-7 rounded-full bg-garden-lavender/40 text-garden-olive flex items-center justify-center text-xs font-black hover:bg-garden-olive hover:text-white transition-colors">
                                     +
                                 </button>
                             </div>
@@ -73,7 +73,7 @@ export default function Sidebar() {
 
                 {/* Footer info */}
                 <div className="pt-8 px-1">
-                    <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest leading-loose">
+                    <p className="text-[9px] font-bold text-garden-olive/30 uppercase tracking-widest leading-loose">
                         EB © 2026 • About • Help • Privacy • Terms
                     </p>
                 </div>
