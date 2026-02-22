@@ -124,24 +124,49 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-100 bg-white/80 backdrop-blur-md">
-      <div className="mx-auto flex max-w-lg items-center justify-around py-3">
+    <nav className="fixed left-0 top-0 bottom-0 z-50 w-20 flex flex-col items-center py-8 border-r border-eco-200 bg-white/70 backdrop-blur-xl shadow-2xl shadow-eco-900/5">
+      {/* Mini Logo */}
+      <div className="mb-12 flex h-12 w-12 items-center justify-center rounded-2xl bg-garden-olive shadow-lg shadow-garden-olive/30 transition-transform hover:scale-105 active:scale-95 cursor-pointer">
+        <span className="font-black text-garden-cream text-lg">EB</span>
+      </div>
+
+      <div className="flex flex-col items-center gap-8 w-full">
         {navItems.map((item) => {
           const active = location.pathname === item.path;
           return (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center gap-1 transition-colors ${active ? "text-terra-600" : "text-gray-400 hover:text-gray-600"
+              className={`group relative flex flex-col items-center gap-1.5 transition-all duration-300 ${active ? "text-garden-olive" : "text-garden-olive/40 hover:text-garden-olive/60"
                 }`}
             >
-              {item.icon(active)}
-              <span className="text-[10px] font-medium uppercase tracking-tight">
+              <div className={`p-3 rounded-2xl transition-all duration-300 ${active ? "bg-garden-lavender shadow-inner" : "group-hover:bg-garden-cream"}`}>
+                {item.icon(active)}
+              </div>
+              <span className={`text-[9px] font-black uppercase tracking-wider transition-opacity duration-300 ${active ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
                 {item.label}
               </span>
+
+              {/* Active Indicator Dot */}
+              {active && (
+                <div className="absolute -left-4 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-garden-olive shadow-[0_0_8px_rgba(128,128,52,0.8)]" />
+              )}
             </Link>
           );
         })}
+      </div>
+
+      {/* Logout / Bottom Action */}
+      <div className="mt-auto">
+        <button
+          className="h-10 w-10 flex items-center justify-center rounded-2xl bg-white border border-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50 hover:border-red-100 transition-all active:scale-90"
+          title="Settings"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </button>
       </div>
     </nav>
   );

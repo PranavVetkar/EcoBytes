@@ -43,64 +43,66 @@ export default function Rewards({ profile }: { profile: UserProfile | null }) {
     const points = profile?.total_points ?? 0;
 
     return (
-        <div className="mx-auto max-w-lg">
-            <header className="sticky top-0 z-40 bg-white/80 px-4 py-6 backdrop-blur-md">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-xl font-bold text-terra-900">Rewards</h1>
-                    <div className="flex items-center gap-2 rounded-full bg-earth-500 px-4 py-1.5 text-white shadow-lg shadow-earth-200">
-                        <span className="text-lg">🌟</span>
-                        <span className="font-bold">{points.toLocaleString()}</span>
-                    </div>
+        <div className="w-full">
+            <header className="mb-10 flex items-center justify-between">
+                <div>
+                    <h1 className="text-4xl font-black text-garden-olive tracking-tight font-creative italic">Rewards</h1>
+                    <p className="text-sm text-garden-olive/60 font-medium mt-2">Redeem your impact for nature's gifts.</p>
                 </div>
-                <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-gray-400">
-                    Redeem your impact points
-                </p>
+                <div className="flex items-center gap-3 rounded-[2rem] bg-gradient-to-br from-garden-olive to-garden-purple px-6 py-3 text-white shadow-xl shadow-garden-olive/20 active:scale-95 transition-transform cursor-pointer">
+                    <span className="text-xl">🌟</span>
+                    <span className="font-black text-lg tracking-tighter">{points.toLocaleString()}</span>
+                </div>
             </header>
 
-            <div className="grid grid-cols-2 gap-4 p-4">
+            <div className="grid grid-cols-2 gap-6">
                 {REWARDS_LIST.map((reward) => (
                     <div
                         key={reward.id}
-                        className="flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100"
+                        className="group flex flex-col overflow-hidden rounded-[2.5rem] bg-white border border-garden-lavender shadow-xl shadow-garden-olive/5 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-garden-olive/10"
                     >
-                        <div className="relative aspect-square">
+                        <div className="relative aspect-square overflow-hidden">
                             <img
                                 src={reward.image}
                                 alt={reward.name}
-                                className="h-full w-full object-cover"
+                                className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700"
                             />
-                            <div className="absolute bottom-2 right-2 rounded-lg bg-black/60 px-2 py-1 text-xs font-bold text-white backdrop-blur-sm">
+                            <div className="absolute top-4 right-4 rounded-2xl bg-white/90 px-3 py-1.5 text-[10px] font-black text-garden-olive backdrop-blur-md shadow-lg border border-white">
                                 {reward.price} pts
                             </div>
                         </div>
-                        <div className="flex flex-1 flex-col p-3">
-                            <h3 className="text-sm font-bold text-terra-900 line-clamp-1">{reward.name}</h3>
-                            <p className="mt-1 text-[11px] leading-tight text-gray-500 line-clamp-2">
+                        <div className="flex flex-1 flex-col p-6">
+                            <h3 className="text-lg font-black text-garden-olive line-clamp-1 font-creative italic">{reward.name}</h3>
+                            <p className="mt-2 text-[11px] leading-relaxed text-garden-olive/60 font-medium line-clamp-2 italic">
                                 {reward.description}
                             </p>
                             <button
                                 disabled={points < reward.price}
-                                className={`mt-3 w-full rounded-lg py-2 text-xs font-bold transition ${points >= reward.price
-                                        ? "bg-terra-600 text-white hover:bg-terra-700"
-                                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                className={`mt-6 w-full rounded-2xl py-3 text-[10px] font-black tracking-widest uppercase shadow-md transition-all active:scale-95 ${points >= reward.price
+                                    ? "bg-garden-olive text-garden-cream hover:bg-garden-olive/90 shadow-garden-olive/20"
+                                    : "bg-garden-cream text-garden-olive/30 cursor-not-allowed border border-garden-lavender"
                                     }`}
                             >
-                                {points >= reward.price ? "Redeem" : "Insufficient Pts"}
+                                {points >= reward.price ? "Redeem" : "Locked"}
                             </button>
                         </div>
                     </div>
                 ))}
             </div>
 
-            <div className="mt-8 px-4 pb-12">
-                <div className="rounded-2xl bg-gradient-to-br from-terra-700 to-terra-800 p-6 text-white shadow-xl">
-                    <h2 className="text-lg font-bold">Earn more points?</h2>
-                    <p className="mt-2 text-sm text-terra-100 opacity-90">
-                        Complete eco-actions, participate in community challenges, and invite friends to level up your impact.
-                    </p>
-                    <button className="mt-6 w-full rounded-xl bg-white py-3 text-sm font-bold text-terra-800 transition hover:bg-terra-50">
-                        View Challenges
-                    </button>
+            <div className="mt-12">
+                <div className="rounded-[3rem] bg-gradient-to-br from-garden-olive to-garden-purple p-8 text-white shadow-2xl shadow-garden-olive/20 relative overflow-hidden group">
+                    <div className="relative z-10">
+                        <h2 className="text-3xl font-black font-creative italic tracking-tight">Earn more?</h2>
+                        <p className="mt-3 text-sm text-garden-cream opacity-90 font-medium leading-relaxed italic">
+                            Complete eco-actions, lead challenges, and invite friends to grow your impact and unlock more rewards.
+                        </p>
+                        <button className="mt-8 w-full rounded-2xl bg-white/20 backdrop-blur-md py-4 text-xs font-black uppercase tracking-[0.2em] text-white border border-white/20 transition-all hover:bg-white hover:text-garden-olive shadow-xl shadow-black/5 active:scale-95">
+                            View Challenges
+                        </button>
+                    </div>
+                    {/* Decorative Circle */}
+                    <div className="absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-white/10 group-hover:scale-110 transition-transform duration-700" />
                 </div>
             </div>
         </div>

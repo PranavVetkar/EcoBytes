@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import { getCurrentUser } from "../services/auth";
+import { Flower, RecycleBin } from "../components/GardenElements";
 
 function SocialPost({ post, onDelete }: { post: any; onDelete: (id: string) => void }) {
   const [liked, setLiked] = useState(false);
@@ -59,7 +60,7 @@ function SocialPost({ post, onDelete }: { post: any; onDelete: (id: string) => v
   };
 
   return (
-    <div className="mb-6 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-gray-100 hover:shadow-md transition-shadow">
+    <div className="mb-10 overflow-hidden rounded-[2.5rem] bg-white shadow-xl shadow-garden-olive/5 border border-garden-lavender hover:shadow-2xl hover:shadow-garden-olive/10 transition-all duration-500">
       {/* Post Header */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-3">
@@ -67,7 +68,7 @@ function SocialPost({ post, onDelete }: { post: any; onDelete: (id: string) => v
             {post.author_name?.charAt(0) || post.author_id?.charAt(0) || "U"}
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-black text-terra-950">{post.author_name || "EcoWarrior"} {isAuthor && <span className="text-[10px] text-terra-500 font-normal ml-1">(You)</span>}</span>
+            <span className="text-sm font-black text-garden-olive">{post.author_name || "EcoWarrior"} {isAuthor && <span className="text-[10px] text-garden-purple font-normal ml-1">(You)</span>}</span>
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">
                 {post.timestamp ? new Date(post.timestamp).toLocaleDateString() : "Just now"}
@@ -75,7 +76,7 @@ function SocialPost({ post, onDelete }: { post: any; onDelete: (id: string) => v
               {post.city && (
                 <>
                   <span className="text-gray-300">•</span>
-                  <span className="text-[10px] font-black text-terra-600 uppercase tracking-widest">📍 {post.city}</span>
+                  <span className="text-[10px] font-black text-garden-purple uppercase tracking-widest">📍 {post.city}</span>
                 </>
               )}
             </div>
@@ -145,11 +146,11 @@ function SocialPost({ post, onDelete }: { post: any; onDelete: (id: string) => v
         </div>
 
         <p className="text-sm font-black text-terra-950 mb-1.5">{((post.likes_count || 0) + (liked ? 1 : 0)).toLocaleString()} likes</p>
-        <p className="text-sm text-gray-700 leading-relaxed">
-          <span className="font-black mr-2 text-terra-900">{post.author_name || "EcoWarrior"}</span>
+        <p className="text-sm text-garden-olive/80 leading-relaxed font-medium">
+          <span className="font-black mr-2 text-garden-olive">{post.author_name || "EcoWarrior"}</span>
           {post.description}
         </p>
-        <p className="mt-2 text-[10px] uppercase font-bold tracking-widest text-terra-500">
+        <p className="mt-3 text-[10px] uppercase font-black tracking-widest text-garden-purple">
           Impact: <span className="text-gray-500">{post.quantity} {post.quantity_unit}</span>
         </p>
 
@@ -269,37 +270,38 @@ export default function Feed() {
   };
 
   return (
-    <div className="mx-auto max-w-lg">
-      <header className="sticky top-0 z-40 flex items-center justify-between bg-white/80 px-4 py-4 backdrop-blur-md">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-terra-600">
-            <span className="font-black text-white text-xs">EB</span>
-          </div>
-          <h1 className="text-xl font-bold tracking-tight text-terra-950">EcoBytes</h1>
-        </div>
-        <button className="text-gray-700">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-          </svg>
-        </button>
-      </header>
+    <div className="w-full relative">
+      <div className="absolute -top-10 -right-4 text-garden-purple opacity-20 rotate-12">
+        <RecycleBin className="h-20 w-20" />
+      </div>
 
-      <main className="p-4 pb-20">
+      {/* Page Title / Context Header */}
+      <div className="mb-14 relative">
+        <div className="absolute -left-10 top-0 text-garden-olive opacity-10">
+          <Flower className="h-16 w-16" />
+        </div>
+        <h2 className="text-6xl font-black text-garden-olive tracking-tighter font-creative italic">Eco Feed</h2>
+        <p className="text-sm text-garden-olive/60 font-medium mt-3 ml-1 flex items-center gap-2">
+          <span className="w-8 h-px bg-garden-olive/20" />
+          Discover how your community is saving the planet.
+        </p>
+      </div>
+
+      <div className="space-y-8">
         {loading && posts.length === HARDCODED_POSTS.length ? (
           <div className="flex justify-center py-20">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-terra-500 border-t-transparent" />
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-eco-500 border-t-transparent" />
           </div>
         ) : posts.length === 0 ? (
-          <div className="py-20 text-center">
-            <p className="text-gray-400">No eco-actions yet. Be the first to share!</p>
+          <div className="py-20 text-center bg-white rounded-3xl border border-dashed border-eco-200">
+            <p className="text-slate-400 font-medium">No eco-actions yet. Be the first to share!</p>
           </div>
         ) : (
           posts.map((post) => (
             <SocialPost key={post.id} post={post} onDelete={handleDelete} />
           ))
         )}
-      </main>
+      </div>
     </div>
   );
 }

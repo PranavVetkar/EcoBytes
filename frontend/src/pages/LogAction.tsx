@@ -101,29 +101,29 @@ export default function LogAction() {
   };
 
   return (
-    <div className="mx-auto max-w-lg">
-      <header className="sticky top-0 z-40 flex items-center justify-between bg-white/80 px-4 py-4 backdrop-blur-md">
-        <Link to="/" className="text-gray-500">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+    <div className="w-full">
+      <header className="mb-10 flex items-center justify-between">
+        <Link to="/" className="text-garden-olive/40 hover:text-garden-olive transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8">
             <path d="M18 6 6 18" /><path d="m6 6 12 12" />
           </svg>
         </Link>
-        <h1 className="text-lg font-bold text-terra-950">New EcoAction</h1>
+        <h1 className="text-3xl font-black text-garden-olive tracking-tight font-creative italic text-center">New Action</h1>
         <button
           onClick={handleSubmit}
           disabled={submitting || !file || !quantity}
-          className="font-bold text-terra-600 disabled:opacity-30"
+          className="font-black text-garden-purple text-sm uppercase tracking-widest disabled:opacity-30 active:scale-90 transition-transform"
         >
           {submitting ? "..." : "Share"}
         </button>
       </header>
 
       <main className="p-4">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
           {/* File Upload / Preview */}
           <div
             onClick={() => fileInputRef.current?.click()}
-            className={`relative aspect-square w-full cursor-pointer overflow-hidden rounded-2xl bg-gray-100 transition hover:bg-gray-200 ${!previewUrl ? "border-2 border-dashed border-gray-300 flex items-center justify-center" : ""}`}
+            className={`relative aspect-square w-full cursor-pointer overflow-hidden rounded-[3rem] bg-garden-cream/50 transition-all hover:bg-garden-cream border-2 border-dashed border-garden-lavender shadow-inner flex items-center justify-center group`}
           >
             {previewUrl ? (
               <>
@@ -137,12 +137,14 @@ export default function LogAction() {
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center gap-2 text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-12 w-12">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" x2="12" y1="3" y2="15" />
-                </svg>
-                <p className="font-bold">Upload Evidence</p>
-                <p className="text-xs">Image or Video</p>
+              <div className="flex flex-col items-center gap-3 text-garden-olive/40 group-hover:text-garden-olive transition-colors">
+                <div className="h-20 w-20 rounded-full bg-white/50 flex items-center justify-center shadow-lg border border-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-10 w-10">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" x2="12" y1="3" y2="15" />
+                  </svg>
+                </div>
+                <p className="font-black uppercase tracking-widest text-xs">Upload Evidence</p>
+                <p className="text-[10px] font-medium italic opacity-60">Photo or Video is required</p>
               </div>
             )}
             <input
@@ -160,21 +162,21 @@ export default function LogAction() {
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Write a caption about your eco-action..."
-                className="w-full border-none bg-transparent px-0 py-2 text-sm focus:ring-0"
-                rows={3}
+                placeholder="Tell the story of your eco-action..."
+                className="w-full border-none bg-white/40 rounded-3xl p-6 text-sm focus:ring-2 focus:ring-garden-olive placeholder:text-garden-olive/30 shadow-inner"
+                rows={4}
               />
             </div>
 
             <hr className="border-gray-100" />
 
             {/* Category */}
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-bold text-gray-700">Category</label>
+            <div className="flex flex-col gap-3">
+              <label className="text-[10px] font-black uppercase tracking-widest text-garden-olive/40 ml-4">Action Category</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as ActionCategory)}
-                className="rounded-lg border-none bg-gray-50 px-3 py-1.5 text-xs font-semibold focus:ring-terra-400"
+                className="w-full rounded-[2rem] border-none bg-white px-6 py-4 text-sm font-black text-garden-olive focus:ring-2 focus:ring-garden-olive shadow-sm"
               >
                 {CATEGORIES.map((c) => (
                   <option key={c.value} value={c.value}>
@@ -184,40 +186,41 @@ export default function LogAction() {
               </select>
             </div>
 
-            {/* Quantity */}
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-bold text-gray-700">Quantity ({UNITS[category]})</label>
-              <input
-                type="number"
-                min="0.1"
-                step="0.1"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                placeholder="0.0"
-                required
-                className="w-24 rounded-lg border-none bg-gray-50 px-3 py-1.5 text-right text-xs font-semibold focus:ring-terra-400"
-              />
-            </div>
-
-            {/* City Selection */}
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-bold text-gray-700">City</label>
-              <select
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="rounded-lg border-none bg-gray-50 px-3 py-1.5 text-xs font-semibold focus:ring-terra-400"
-              >
-                {CITIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+            {/* Quantity and City (Combined Row) */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-3">
+                <label className="text-[10px] font-black uppercase tracking-widest text-garden-olive/40 ml-4">Quantity ({UNITS[category]})</label>
+                <input
+                  type="number"
+                  min="0.1"
+                  step="0.1"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  placeholder="0.0"
+                  required
+                  className="w-full rounded-[2rem] border-none bg-white px-6 py-4 text-sm font-black text-garden-olive focus:ring-2 focus:ring-garden-olive shadow-sm"
+                />
+              </div>
+              <div className="flex flex-col gap-3">
+                <label className="text-[10px] font-black uppercase tracking-widest text-garden-olive/40 ml-4">City</label>
+                <select
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className="w-full rounded-[2rem] border-none bg-white px-6 py-4 text-sm font-black text-garden-olive focus:ring-2 focus:ring-garden-olive shadow-sm"
+                >
+                  {CITIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
           {error && (
-            <div className="rounded-xl bg-red-50 p-3 text-xs font-medium text-red-600">
+            <div className="rounded-[2rem] bg-red-50 p-5 text-xs font-black text-red-600 border border-red-100 flex items-center gap-3">
+              <span className="text-lg">⚠️</span>
               {error}
             </div>
           )}

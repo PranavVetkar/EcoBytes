@@ -105,15 +105,20 @@ export default function Communities({ profile, onRefresh }: CommunitiesProps) {
     };
 
     return (
-        <div className="mx-auto max-w-lg">
-            <header className="sticky top-0 z-40 flex items-center justify-between bg-white/80 px-4 py-4 backdrop-blur-md">
-                <h1 className="text-xl font-bold text-terra-950">Communities</h1>
+        <div className="w-full">
+            <header className="mb-10 flex items-center justify-between">
+                <div>
+                    <h1 className="text-4xl font-black text-garden-olive tracking-tight font-creative italic">Communities</h1>
+                    <p className="text-sm text-garden-olive/60 font-medium mt-2">Find your tribe and grow together.</p>
+                </div>
                 <button
                     onClick={() => setShowCreate(!showCreate)}
-                    className={`rounded-full px-4 py-1.5 text-sm font-bold transition ${showCreate ? "bg-gray-100 text-gray-500" : "bg-terra-600 text-white hover:bg-terra-700"
+                    className={`rounded-2xl px-6 py-2.5 text-xs font-black transition-all shadow-md active:scale-95 ${showCreate
+                        ? "bg-garden-cream text-garden-olive border border-garden-lavender"
+                        : "bg-garden-olive text-garden-cream hover:bg-garden-olive/90"
                         }`}
                 >
-                    {showCreate ? "Cancel" : "Create"}
+                    {showCreate ? "Close" : "Start New"}
                 </button>
             </header>
 
@@ -121,9 +126,9 @@ export default function Communities({ profile, onRefresh }: CommunitiesProps) {
                 {showCreate && (
                     <form
                         onSubmit={handleCreate}
-                        className="mb-8 overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100"
+                        className="mb-12 overflow-hidden rounded-[2.5rem] bg-white p-8 shadow-2xl shadow-garden-olive/5 border border-garden-lavender"
                     >
-                        <h2 className="mb-4 text-lg font-black text-terra-900">Start a Community</h2>
+                        <h2 className="mb-6 text-2xl font-black text-garden-olive font-creative italic">Start a Community</h2>
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400">
@@ -133,7 +138,7 @@ export default function Communities({ profile, onRefresh }: CommunitiesProps) {
                                     type="text"
                                     value={newName}
                                     onChange={(e) => setNewName(e.target.value)}
-                                    className="mt-1 w-full rounded-xl border-none bg-gray-50 px-4 py-3 text-sm focus:ring-2 focus:ring-terra-500"
+                                    className="mt-2 w-full rounded-2xl border-none bg-garden-cream/50 px-4 py-3.5 text-sm focus:ring-2 focus:ring-garden-olive placeholder:text-garden-olive/30"
                                     placeholder="e.g. Green Valley Residents"
                                     required
                                 />
@@ -146,7 +151,7 @@ export default function Communities({ profile, onRefresh }: CommunitiesProps) {
                                 <textarea
                                     value={newDescription}
                                     onChange={(e) => setNewDescription(e.target.value)}
-                                    className="mt-1 w-full rounded-xl border-none bg-gray-50 px-4 py-3 text-sm focus:ring-2 focus:ring-terra-500"
+                                    className="mt-2 w-full rounded-2xl border-none bg-garden-cream/50 px-4 py-3.5 text-sm focus:ring-2 focus:ring-garden-olive placeholder:text-garden-olive/30"
                                     placeholder="What is this community about?"
                                     rows={2}
                                 />
@@ -172,7 +177,7 @@ export default function Communities({ profile, onRefresh }: CommunitiesProps) {
                                     <select
                                         value={newType}
                                         onChange={(e) => setNewType(e.target.value)}
-                                        className="mt-1 w-full rounded-xl border-none bg-gray-50 px-4 py-3 text-sm focus:ring-2 focus:ring-terra-500"
+                                        className="mt-2 w-full rounded-2xl border-none bg-garden-cream/50 px-4 py-3.5 text-sm focus:ring-2 focus:ring-garden-olive"
                                     >
                                         {COMMUNITY_TYPES.map((t) => (
                                             <option key={t} value={t}>
@@ -193,9 +198,9 @@ export default function Communities({ profile, onRefresh }: CommunitiesProps) {
                                             key={cat}
                                             type="button"
                                             onClick={() => toggleArea(cat)}
-                                            className={`rounded-lg px-2.5 py-1.5 text-[10px] font-bold uppercase transition ${selectedAreas.includes(cat)
-                                                ? "bg-terra-600 text-white"
-                                                : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+                                            className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 ${selectedAreas.includes(cat)
+                                                ? "bg-garden-olive text-garden-cream shadow-md shadow-garden-olive/20"
+                                                : "bg-garden-cream/50 text-garden-olive/60 hover:bg-garden-cream"
                                                 }`}
                                         >
                                             {cat.replace(/_/g, " ")}
@@ -207,7 +212,7 @@ export default function Communities({ profile, onRefresh }: CommunitiesProps) {
                             <button
                                 type="submit"
                                 disabled={submitting}
-                                className="w-full rounded-xl bg-terra-900 py-3 font-black text-white transition hover:bg-black disabled:opacity-50"
+                                className="w-full rounded-2xl bg-garden-olive py-4 font-black text-garden-cream transition-all hover:bg-garden-olive/90 disabled:opacity-50 active:scale-95 shadow-lg shadow-garden-olive/20"
                             >
                                 {submitting ? "Launching..." : "Launch Community"}
                             </button>
@@ -215,11 +220,9 @@ export default function Communities({ profile, onRefresh }: CommunitiesProps) {
                     </form>
                 )}
 
-                {loading && (
-                    <div className="flex justify-center py-12">
-                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-terra-500 border-t-transparent" />
-                    </div>
-                )}
+                <div className="flex justify-center py-12">
+                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-garden-olive border-t-transparent" />
+                </div>
 
                 {error && <p className="text-center text-sm text-red-500">{error}</p>}
 
@@ -237,11 +240,11 @@ export default function Communities({ profile, onRefresh }: CommunitiesProps) {
                         return (
                             <div
                                 key={c.id}
-                                className="group flex flex-col overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-gray-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:ring-terra-100"
+                                className="group flex flex-col overflow-hidden rounded-[2.5rem] bg-white border border-garden-lavender shadow-xl shadow-garden-olive/5 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-garden-olive/10"
                             >
                                 {/* Community Hero */}
                                 <div
-                                    className="relative h-36 w-full bg-gradient-to-br from-terra-500 via-terra-600 to-earth-500 p-5 flex flex-col justify-between bg-cover bg-center"
+                                    className="relative h-44 w-full bg-gradient-to-br from-garden-olive via-garden-purple to-garden-olive/80 p-6 flex flex-col justify-between bg-cover bg-center"
                                     style={c.image_url ? { backgroundImage: `linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.4)), url(${c.image_url})` } : {}}
                                 >
                                     <div className="flex items-center justify-between">
@@ -250,7 +253,7 @@ export default function Communities({ profile, onRefresh }: CommunitiesProps) {
                                                 {c.type}
                                             </span>
                                             {isAdmin && (
-                                                <span className="rounded-full bg-earth-400/90 px-3 py-1 text-[9px] font-black uppercase tracking-wider text-white backdrop-blur-md">
+                                                <span className="rounded-full bg-garden-purple/90 px-3 py-1 text-[9px] font-black uppercase tracking-wider text-white backdrop-blur-md">
                                                     Admin
                                                 </span>
                                             )}
@@ -267,7 +270,7 @@ export default function Communities({ profile, onRefresh }: CommunitiesProps) {
                                 <div className="p-6">
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
-                                            <h3 className="text-xl font-black tracking-tight text-terra-950 group-hover:text-terra-600 transition-all">{c.name}</h3>
+                                            <h3 className="text-2xl font-black tracking-tight text-garden-olive group-hover:text-garden-purple transition-all font-creative italic">{c.name}</h3>
                                             <div className="mt-1 flex items-center gap-2">
                                                 <div className="flex -space-x-2">
                                                     {[1, 2, 3].map((i) => (
@@ -282,16 +285,16 @@ export default function Communities({ profile, onRefresh }: CommunitiesProps) {
                                         <div className="flex flex-col gap-2">
                                             <button
                                                 onClick={() => handleJoinLeave(c.id, !isMember)}
-                                                className={`w-full rounded-2xl px-6 py-2.5 text-xs font-black shadow-sm transition-all active:scale-95 ${isMember
-                                                    ? "bg-gray-50 text-gray-500 hover:bg-gray-100 ring-1 ring-gray-200"
-                                                    : "bg-gradient-to-r from-terra-500 to-terra-600 text-white shadow-terra-100 hover:shadow-lg ring-1 ring-terra-500"
+                                                className={`w-full rounded-2xl px-6 py-3 text-xs font-black shadow-lg transition-all active:scale-95 ${isMember
+                                                    ? "bg-garden-cream text-garden-olive/60 border border-garden-lavender"
+                                                    : "bg-garden-olive text-garden-cream shadow-garden-olive/20 hover:shadow-garden-olive/40 translate-y-0 hover:-translate-y-0.5"
                                                     }`}
                                             >
                                                 {isMember ? "Joined" : "Join Now"}
                                             </button>
                                             <Link
                                                 to={`/communities/${c.id}`}
-                                                className="w-full text-center rounded-2xl border border-gray-200 bg-white px-6 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 hover:text-terra-800 transition-colors shadow-sm active:scale-95"
+                                                className="w-full text-center rounded-2xl border border-garden-lavender/50 bg-garden-cream/30 px-6 py-2.5 text-xs font-black text-garden-olive hover:bg-white transition-all shadow-sm active:scale-95"
                                             >
                                                 About Us
                                             </Link>
@@ -309,8 +312,8 @@ export default function Communities({ profile, onRefresh }: CommunitiesProps) {
                                     )}
 
                                     {c.upcoming_events && c.upcoming_events.length > 0 && (
-                                        <div className="mt-5 rounded-xl bg-terra-50 p-3 text-center ring-1 ring-terra-100">
-                                            <p className="text-xs font-bold text-terra-800">
+                                        <div className="mt-5 rounded-2xl bg-garden-lavender/30 p-4 text-center border border-garden-lavender/50">
+                                            <p className="text-xs font-black text-garden-olive">
                                                 📅 {c.upcoming_events.length} upcoming event{c.upcoming_events.length > 1 ? "s" : ""} this month!
                                             </p>
                                         </div>
