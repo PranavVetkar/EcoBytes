@@ -272,3 +272,88 @@ async def update_action_status(action_id: str, payload: dict, user: CurrentUser)
     await doc_ref.update(updates)
 
     return {"status": "success", "message": message}
+
+@router.post("/generate-caption")
+async def generate_caption(
+    user: CurrentUser,
+    file: UploadFile = File(...)
+):
+    """
+    Accepts an uploaded image, converts it to base64, and asks OpenAI
+    to generate an eco-friendly caption for it.
+    """
+    from app.config import settings
+    import httpx
+    import base64
+    
+    if not settings.openai_api_key:
+        raise HTTPException(
+            status_code=500, 
+            detail="OpenAI API key is not configured across the environment."
+        )
+        
+    # Read the file and encode
+    content = await file.read()
+    mime_type = file.content_type or "image/jpeg"
+    
+    # Simple check to make sure it's an image
+    if not mime_type.startswith("image/"):
+        raise HTTPException(
+            status_code=400,
+            detail="Only images are supported for AI caption generation at this time."
+        )
+        
+    encoded_image = base64.b64encode(content).decode('utf-8')
+    data_uri = f"data:{mime_type};base64,{encoded_image}"
+    
+    # Request data for OpenAI GPT-4o-mini Vision
+    payload = {
+        "model": "gpt-4o-mini",
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Write a short, engaging, and enthusiastic caption (1-2 sentences) with a few emojis for this image of an eco-friendly action. Just return the caption text."
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": data_uri
+                        }
+                    }
+                ]
+            }
+        ],
+        "max_tokens": 100
+    }
+    
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {settings.openai_api_key}"
+    }
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                json=payload,
+                headers=headers,
+                timeout=15.0
+            )
+            response.raise_for_status()
+            data = response.json()
+            
+            caption = data["choices"][0]["message"]["content"].strip()
+            # Strip outer quotes if the AI adds them
+            if caption.startswith('"') and caption.endswith('"'):
+                caption = caption[1:-1]
+                
+            return {"caption": caption}
+    except Exception as e:
+        print(f"Error generating caption: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail="Failed to generate caption with AI. Please try writing one manually."
+        )

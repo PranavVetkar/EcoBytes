@@ -248,6 +248,7 @@ const HARDCODED_POSTS = [
 export default function Feed() {
   const [posts, setPosts] = useState<any[]>(HARDCODED_POSTS);
   const [loading, setLoading] = useState(true);
+  const [cityStats, setCityStats] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const fetchFeed = async () => {
@@ -261,7 +262,18 @@ export default function Feed() {
         setLoading(false);
       }
     };
+
+    const fetchCityStats = async () => {
+      try {
+        const res = await api.get<Record<string, number>>("/feed/city-stats");
+        setCityStats(res.data);
+      } catch (err) {
+        console.error("Failed to fetch city stats:", err);
+      }
+    };
+
     fetchFeed();
+    fetchCityStats();
   }, []);
 
   const handleDelete = (postId: string) => {
@@ -285,20 +297,59 @@ export default function Feed() {
         </button>
       </header>
 
-      <main className="p-4 pb-20">
-        {loading && posts.length === HARDCODED_POSTS.length ? (
-          <div className="flex justify-center py-20">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-terra-500 border-t-transparent" />
+      <main className="p-4 flex flex-col min-h-[calc(100vh-80px)]">
+        {/* City Heatmap Section */}
+        <div className="mb-8 border-b border-gray-100 pb-8">
+          <div className="mb-4 text-center">
+            <h2 className="text-sm font-black uppercase tracking-widest text-terra-950">City Impact Heatmap</h2>
+            <p className="text-[10px] text-gray-500 mt-1">Total verified actions across cities</p>
           </div>
-        ) : posts.length === 0 ? (
-          <div className="py-20 text-center">
-            <p className="text-gray-400">No eco-actions yet. Be the first to share!</p>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {["Mumbai", "Delhi", "Bangalore", "Chennai"].map((city) => {
+              const count = cityStats[city] || 0;
+
+              // Calculate "heat" level based on count (simple logic for MVP)
+              let heatColor = "bg-terra-50 text-terra-900 border-terra-100";
+              let heatIcon = "🌱";
+
+              if (count > 20) {
+                heatColor = "bg-terra-600 text-white border-terra-700 shadow-md shadow-terra-500/20";
+                heatIcon = "🔥";
+              } else if (count > 10) {
+                heatColor = "bg-terra-400 text-white border-terra-500 shadow-sm";
+                heatIcon = "🌿";
+              } else if (count > 0) {
+                heatColor = "bg-terra-200 text-terra-950 border-terra-300";
+                heatIcon = "🪴";
+              }
+
+              return (
+                <div key={city} className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all hover:scale-[1.02] ${heatColor}`}>
+                  <span className="text-2xl mb-2">{heatIcon}</span>
+                  <span className="text-xl font-black">{count}</span>
+                  <span className="text-[10px] uppercase tracking-widest font-bold mt-1 opacity-90 truncate w-full text-center">{city}</span>
+                </div>
+              );
+            })}
           </div>
-        ) : (
-          posts.map((post) => (
-            <SocialPost key={post.id} post={post} onDelete={handleDelete} />
-          ))
-        )}
+        </div>
+
+        <div className="flex-1">
+          {loading && posts.length === HARDCODED_POSTS.length ? (
+            <div className="flex justify-center py-20">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-terra-500 border-t-transparent" />
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="py-20 text-center">
+              <p className="text-gray-400">No eco-actions yet. Be the first to share!</p>
+            </div>
+          ) : (
+            posts.map((post) => (
+              <SocialPost key={post.id} post={post} onDelete={handleDelete} />
+            ))
+          )}
+        </div>
       </main>
     </div>
   );

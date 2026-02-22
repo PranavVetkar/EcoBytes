@@ -48,6 +48,7 @@ export default function LogAction() {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [generatingCaption, setGeneratingCaption] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,6 +57,33 @@ export default function LogAction() {
       setFile(selectedFile);
       const url = URL.createObjectURL(selectedFile);
       setPreviewUrl(url);
+    }
+  };
+
+  const handleGenerateCaption = async () => {
+    if (!file) return;
+
+    // Check if it's an image, as the backend endpoint might not support video well
+    if (!file.type.startsWith("image/")) {
+      setError("AI captions currently only support images.");
+      return;
+    }
+
+    setGeneratingCaption(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await api.post("/actions/generate-caption", formData);
+      if (res.data?.caption) {
+        setDescription(res.data.caption);
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Failed to generate caption.");
+    } finally {
+      setGeneratingCaption(false);
     }
   };
 
@@ -156,7 +184,7 @@ export default function LogAction() {
 
           <div className="space-y-4">
             {/* Description / Caption */}
-            <div>
+            <div className="relative">
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -164,6 +192,26 @@ export default function LogAction() {
                 className="w-full border-none bg-transparent px-0 py-2 text-sm focus:ring-0"
                 rows={3}
               />
+              {file && file.type.startsWith("image/") && (
+                <button
+                  type="button"
+                  onClick={handleGenerateCaption}
+                  disabled={generatingCaption}
+                  className="absolute bottom-2 right-2 flex items-center gap-1.5 rounded-full bg-terra-50 px-3 py-1.5 text-[10px] font-bold text-terra-600 ring-1 ring-terra-200 transition-colors hover:bg-terra-100 focus:outline-none disabled:opacity-50"
+                >
+                  {generatingCaption ? (
+                    <>
+                      <div className="h-3 w-3 animate-spin rounded-full border-2 border-terra-600 border-t-transparent" />
+                      <span>Generating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>✨</span>
+                      <span>Auto-Caption</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
 
             <hr className="border-gray-100" />

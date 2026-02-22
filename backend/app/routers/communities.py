@@ -13,9 +13,9 @@ COMMUNITIES_COLLECTION = "communities"
 
 @router.get("/")
 async def list_communities(user: CurrentUser):
-    """List all communities, ordered by member_count desc."""
+    """List all communities, ordered by created_at desc."""
     db = get_firestore_client()
-    docs = db.collection(COMMUNITIES_COLLECTION).order_by("member_count", direction=firestore.Query.DESCENDING).stream()
+    docs = db.collection(COMMUNITIES_COLLECTION).order_by("created_at", direction=firestore.Query.DESCENDING).stream()
     
     communities = []
     async for doc in docs:
@@ -181,3 +181,57 @@ async def list_coordinators(community_id: str, user: CurrentUser):
             })
             
     return profiles
+
+
+@router.get("/{community_id}/leaderboard")
+async def get_community_leaderboard(community_id: str, user: CurrentUser):
+    """
+    Return the leaderboard for a specific community, ranking members
+    based on the points they've earned from verified actions within this community.
+    """
+    db = get_firestore_client()
+    
+    # Verify the community exists
+    comm_ref = db.collection(COMMUNITIES_COLLECTION).document(community_id)
+    comm_doc = await comm_ref.get()
+    
+    if not comm_doc.exists:
+        raise HTTPException(status_code=404, detail="Community not found")
+        
+    # Query all verified actions for this community
+    actions_ref = db.collection("eco_actions")\
+        .where("community_id", "==", community_id)\
+        .where("verification_status", "==", "verified")
+        
+    docs = actions_ref.stream()
+    
+    # Aggregate points per user
+    user_points = {}
+    user_names = {}
+    
+    async for doc in docs:
+        action_data = doc.to_dict()
+        author_id = action_data.get("author_id")
+        points = float(action_data.get("points_earned", 0.0))
+        author_name = action_data.get("author_name", "Unknown User")
+        
+        if author_id:
+            user_points[author_id] = user_points.get(author_id, 0.0) + points
+            # Store name on first encounter
+            if author_id not in user_names:
+                user_names[author_id] = author_name
+                
+    # Format into a sorted list
+    leaderboard = []
+    for uid, points in user_points.items():
+        leaderboard.append({
+            "uid": uid,
+            "name": user_names.get(uid, "Eco Warrior"),
+            "points": points
+        })
+        
+    # Sort descending by points
+    leaderboard.sort(key=lambda x: x["points"], reverse=True)
+    
+    return leaderboard
+

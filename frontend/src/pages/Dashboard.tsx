@@ -140,15 +140,59 @@ export default function Dashboard({ user, profile, onRefresh }: DashboardProps) 
           ))}
         </div>
 
-        {/* Section: Badges (Mock) */}
+        {/* Section: Daily Streaks */}
         <div className="mb-8">
-          <h3 className="mb-4 text-xs font-black uppercase tracking-widest text-gray-400">Achievements</h3>
-          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-            {["🌲", "🔋", "♻️", "🚲", "💧"].map((emoji, idx) => (
-              <div key={idx} className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
-                <span className="text-2xl">{emoji}</span>
-              </div>
-            ))}
+          <h3 className="mb-4 text-xs font-black uppercase tracking-widest text-gray-400">Daily Streaks</h3>
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide justify-between">
+            {(() => {
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const currentDay = today.getDay();
+              const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+
+              const startOfWeek = new Date(today);
+              startOfWeek.setDate(today.getDate() + diffToMonday);
+
+              const activeDays = new Set<number>();
+              recentActions.forEach(action => {
+                if (!action.timestamp) return;
+                const timestampStr = String(action.timestamp);
+                const tzDate = new Date(timestampStr.endsWith('Z') ? timestampStr : timestampStr + 'Z');
+
+                if (tzDate >= startOfWeek) {
+                  let dayIdx = tzDate.getDay() - 1;
+                  if (dayIdx === -1) dayIdx = 6;
+                  activeDays.add(dayIdx);
+                }
+              });
+
+              return [0, 1, 2, 3, 4, 5, 6].map((dayIdx) => {
+                const dayName = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][dayIdx];
+                const isActive = activeDays.has(dayIdx);
+                const isToday = dayIdx === (currentDay === 0 ? 6 : currentDay - 1);
+
+                return (
+                  <div
+                    key={dayIdx}
+                    className={`flex flex-col items-center justify-center p-2 rounded-xl min-w-[3rem] transition-all duration-300 shadow-sm ring-1 ${isActive
+                      ? "bg-terra-500 text-white ring-terra-500 shadow-terra-500/30 font-bold"
+                      : isToday
+                        ? "bg-terra-50 text-terra-950 ring-terra-200"
+                        : "bg-white text-gray-400 ring-gray-100"
+                      }`}
+                  >
+                    <span className="text-[10px] uppercase tracking-wider mb-1">{dayName}</span>
+                    <div className={`h-6 w-6 rounded-full flex items-center justify-center ${isActive ? "bg-white/20" : "bg-gray-50"}`}>
+                      {isActive ? (
+                        <span className="text-sm">🌿</span>
+                      ) : (
+                        <span className="text-sm opacity-30">🌿</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </div>
         </div>
 
