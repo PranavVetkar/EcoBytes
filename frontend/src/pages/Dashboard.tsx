@@ -66,24 +66,31 @@ export default function Dashboard({ user, profile, onRefresh }: DashboardProps) 
     }
   };
 
+  const activeDaysCount = new Set(
+    recentActions.map((a) => {
+      const d = new Date(a.timestamp);
+      return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    })
+  ).size;
+
   const statCards = [
     {
       label: "Points",
       value: profile?.total_points?.toLocaleString() ?? "0",
       icon: "🌟",
-      color: "from-earth-400 to-earth-600",
+      color: "from-terra-500 to-terra-700",
     },
     {
-      label: "Rank",
-      value: profile?.rank ? `#${profile.rank}` : "—",
-      icon: "🏅",
+      label: "Active Days",
+      value: activeDaysCount.toString(),
+      icon: "📅",
       color: "from-terra-500 to-terra-700",
     },
     {
       label: "Actions",
       value: profile?.post_count?.toLocaleString() ?? "0",
       icon: "🌱",
-      color: "from-terra-600 to-terra-800",
+      color: "from-terra-500 to-terra-700",
     },
   ];
 
