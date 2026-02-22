@@ -66,6 +66,13 @@ export default function Dashboard({ user, profile, onRefresh }: DashboardProps) 
     }
   };
 
+  const activeDaysCount = new Set(
+    recentActions.map((a) => {
+      const d = new Date(a.timestamp);
+      return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    })
+  ).size;
+
   const statCards = [
     {
       label: "Points",
@@ -78,6 +85,12 @@ export default function Dashboard({ user, profile, onRefresh }: DashboardProps) 
       value: profile?.rank ? `#${profile.rank}` : "—",
       icon: "🏅",
       color: "from-garden-purple to-garden-lavender",
+    },
+    {
+      label: "Active Days",
+      value: activeDaysCount.toString(),
+      icon: "📅",
+      color: "from-garden-olive/80 to-garden-purple/80",
     },
     {
       label: "Actions",
@@ -140,6 +153,62 @@ export default function Dashboard({ user, profile, onRefresh }: DashboardProps) 
               <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-80">{card.label}</span>
             </div>
           ))}
+        </div>
+
+        {/* Section: Daily Streaks */}
+        <div className="mb-12">
+          <h3 className="mb-5 text-[10px] font-black uppercase tracking-[0.2em] text-garden-olive/40 ml-1">Daily Streaks</h3>
+          <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide justify-between">
+            {(() => {
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const currentDay = today.getDay();
+              const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+
+              const startOfWeek = new Date(today);
+              startOfWeek.setDate(today.getDate() + diffToMonday);
+
+              const activeDays = new Set<number>();
+              recentActions.forEach(action => {
+                if (!action.timestamp) return;
+                const timestampStr = String(action.timestamp);
+                const tzDate = new Date(timestampStr.endsWith('Z') ? timestampStr : timestampStr + 'Z');
+
+                if (tzDate >= startOfWeek) {
+                  let dayIdx = tzDate.getDay() - 1;
+                  if (dayIdx === -1) dayIdx = 6;
+                  activeDays.add(dayIdx);
+                }
+              });
+
+              return [0, 1, 2, 3, 4, 5, 6].map((dayIdx) => {
+                const dayName = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][dayIdx];
+                const isActive = activeDays.has(dayIdx);
+                const isToday = dayIdx === (currentDay === 0 ? 6 : currentDay - 1);
+
+                return (
+                  <div
+                    key={dayIdx}
+                    className={`flex flex-col items-center justify-center p-3 rounded-2xl min-w-[3.2rem] transition-all duration-500 shadow-xl border ${isActive
+                      ? "bg-gradient-to-br from-garden-olive to-garden-purple text-white border-transparent shadow-garden-olive/20 scale-110 font-black z-10"
+                      : isToday
+                        ? "bg-garden-cream/80 text-garden-olive ring-2 ring-garden-lavender border-transparent"
+                        : "bg-white text-garden-olive/30 border-garden-lavender shadow-garden-olive/5"
+                      }`}
+                  >
+                    <span className="text-[9px] font-black uppercase tracking-wider mb-2">{dayName}</span>
+                    <div className={`h-7 w-7 rounded-2xl flex items-center justify-center ${isActive ? "bg-white/20" : "bg-garden-cream/30"}`}>
+                      {isActive ? (
+                        <span className="text-sm">🌿</span>
+                      ) : (
+                        <span className="text-sm opacity-30">🌱</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
         </div>
 
         {/* Section: Badges (Mock) */}

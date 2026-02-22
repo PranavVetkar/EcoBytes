@@ -249,6 +249,7 @@ const HARDCODED_POSTS = [
 export default function Feed() {
   const [posts, setPosts] = useState<any[]>(HARDCODED_POSTS);
   const [loading, setLoading] = useState(true);
+  const [cityStats, setCityStats] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const fetchFeed = async () => {
@@ -262,7 +263,18 @@ export default function Feed() {
         setLoading(false);
       }
     };
+
+    const fetchCityStats = async () => {
+      try {
+        const res = await api.get<Record<string, number>>("/feed/city-stats");
+        setCityStats(res.data);
+      } catch (err) {
+        console.error("Failed to fetch city stats:", err);
+      }
+    };
+
     fetchFeed();
+    fetchCityStats();
   }, []);
 
   const handleDelete = (postId: string) => {
@@ -287,21 +299,60 @@ export default function Feed() {
         </p>
       </div>
 
-      <div className="space-y-8">
-        {loading && posts.length === HARDCODED_POSTS.length ? (
-          <div className="flex justify-center py-20">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-eco-500 border-t-transparent" />
+      <main className="flex flex-col min-h-[calc(100vh-80px)]">
+        {/* City Heatmap Section */}
+        <div className="mb-12 border-b border-garden-lavender pb-12">
+          <div className="mb-6">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-garden-olive/40 ml-1">City Impact Heatmap</h3>
+            <p className="text-xs text-garden-olive/60 font-medium mt-1 italic">Total verified actions across the garden.</p>
           </div>
-        ) : posts.length === 0 ? (
-          <div className="py-20 text-center bg-white rounded-3xl border border-dashed border-eco-200">
-            <p className="text-slate-400 font-medium">No eco-actions yet. Be the first to share!</p>
+
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {["Mumbai", "Delhi", "Bangalore", "Chennai"].map((city) => {
+              const count = cityStats[city] || 0;
+
+              // Calculate "heat" level based on count
+              let heatStyles = "bg-white text-garden-olive border-garden-lavender shadow-garden-olive/5";
+              let heatIcon = "🌱";
+
+              if (count > 20) {
+                heatStyles = "bg-gradient-to-br from-garden-olive to-garden-purple text-white border-transparent shadow-xl shadow-garden-olive/20 scale-105 z-10 font-black";
+                heatIcon = "🔥";
+              } else if (count > 10) {
+                heatStyles = "bg-garden-olive text-garden-cream border-transparent shadow-lg shadow-garden-olive/10";
+                heatIcon = "🌿";
+              } else if (count > 0) {
+                heatStyles = "bg-garden-cream/80 text-garden-olive border-garden-lavender";
+                heatIcon = "🪴";
+              }
+
+              return (
+                <div key={city} className={`flex flex-col items-center justify-center p-6 rounded-[2rem] border transition-all duration-500 hover:-translate-y-1 ${heatStyles}`}>
+                  <span className="text-2xl mb-2">{heatIcon}</span>
+                  <span className="text-2xl font-black tracking-tighter">{count}</span>
+                  <span className="text-[10px] uppercase tracking-widest font-black mt-2 truncate w-full text-center opacity-80">{city}</span>
+                </div>
+              );
+            })}
           </div>
-        ) : (
-          posts.map((post) => (
-            <SocialPost key={post.id} post={post} onDelete={handleDelete} />
-          ))
-        )}
-      </div>
+        </div>
+
+        <div className="flex-1 space-y-10">
+          {loading && posts.length === HARDCODED_POSTS.length ? (
+            <div className="flex justify-center py-20">
+              <div className="h-10 w-10 animate-spin rounded-full border-4 border-garden-olive border-t-transparent" />
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="py-20 text-center rounded-[2.5rem] border-2 border-dashed border-garden-lavender bg-garden-cream/50">
+              <p className="text-garden-olive/40 font-black italic uppercase tracking-widest text-xs">No eco-actions yet. Be the first to share!</p>
+            </div>
+          ) : (
+            posts.map((post) => (
+              <SocialPost key={post.id} post={post} onDelete={handleDelete} />
+            ))
+          )}
+        </div>
+      </main>
     </div>
   );
 }

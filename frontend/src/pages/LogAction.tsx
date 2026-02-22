@@ -48,6 +48,7 @@ export default function LogAction() {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [generatingCaption, setGeneratingCaption] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,6 +57,33 @@ export default function LogAction() {
       setFile(selectedFile);
       const url = URL.createObjectURL(selectedFile);
       setPreviewUrl(url);
+    }
+  };
+
+  const handleGenerateCaption = async () => {
+    if (!file) return;
+
+    // Check if it's an image, as the backend endpoint might not support video well
+    if (!file.type.startsWith("image/")) {
+      setError("AI captions currently only support images.");
+      return;
+    }
+
+    setGeneratingCaption(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await api.post("/actions/generate-caption", formData);
+      if (res.data?.caption) {
+        setDescription(res.data.caption);
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Failed to generate caption.");
+    } finally {
+      setGeneratingCaption(false);
     }
   };
 
@@ -158,7 +186,7 @@ export default function LogAction() {
 
           <div className="space-y-4">
             {/* Description / Caption */}
-            <div>
+            <div className="relative">
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -166,6 +194,26 @@ export default function LogAction() {
                 className="w-full border-none bg-white/40 rounded-3xl p-6 text-sm focus:ring-2 focus:ring-garden-olive placeholder:text-garden-olive/30 shadow-inner"
                 rows={4}
               />
+              {file && file.type.startsWith("image/") && (
+                <button
+                  type="button"
+                  onClick={handleGenerateCaption}
+                  disabled={generatingCaption}
+                  className="absolute bottom-4 right-4 flex items-center gap-2 rounded-2xl bg-white/90 px-4 py-2.5 text-[10px] font-black text-garden-olive ring-1 ring-garden-lavender shadow-lg backdrop-blur-md transition-all hover:bg-garden-olive hover:text-white disabled:opacity-50 active:scale-95"
+                >
+                  {generatingCaption ? (
+                    <>
+                      <div className="h-3 w-3 animate-spin rounded-full border-2 border-garden-olive border-t-transparent" />
+                      <span className="uppercase tracking-widest">Growing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-sm">✨</span>
+                      <span className="uppercase tracking-widest">AI Caption</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
 
             <hr className="border-gray-100" />

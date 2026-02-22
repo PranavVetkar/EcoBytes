@@ -22,6 +22,7 @@ export default function CommunityDetails() {
     const [coordinators, setCoordinators] = useState<CoordinatorProfile[]>([]);
     const [isAddCoordModalOpen, setIsAddCoordModalOpen] = useState(false);
     const [userRsvps, setUserRsvps] = useState<Record<string, string>>({}); // eventId -> status
+    const [leaderboard, setLeaderboard] = useState<{ uid: string; name: string; points: number }[]>([]);
 
     const user = getCurrentUser();
     const isAdmin = user?.uid === community?.admin_id;
@@ -49,6 +50,10 @@ export default function CommunityDetails() {
                 const userRes = await api.get<{ area?: string }>(`/users/me`);
                 setUserProfile(userRes.data);
             }
+
+            // Fetch leaderboard data
+            const boardRes = await api.get<{ uid: string; name: string; points: number }[]>(`/communities/${id}/leaderboard`);
+            setLeaderboard(boardRes.data);
 
             // Fetch user's RSVPs if any (we'll need a way to check registration status)
             // For now, let's just mark the ones we know about locally or fetch all registrations for this user
@@ -268,6 +273,56 @@ export default function CommunityDetails() {
                     ) : (
                         <div className="rounded-2xl border-2 border-dashed border-gray-100 bg-gray-50/50 p-4 text-center">
                             <p className="text-[10px] text-gray-400 italic">No coordinators assigned.</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Leaderboard Section */}
+                <div>
+                    <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-sm font-black uppercase tracking-widest text-gray-400">Leaderboard</h2>
+                        <span className="rounded-full bg-terra-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-terra-600 ring-1 ring-terra-100 transition-all">
+                            Top Members
+                        </span>
+                    </div>
+                    {leaderboard.length > 0 ? (
+                        <div className="space-y-2">
+                            {leaderboard.slice(0, 10).map((member, index) => {
+                                const isTop3 = index < 3;
+                                const rankColors = [
+                                    "bg-gradient-to-r from-yellow-100 to-yellow-50 ring-yellow-300", // Gold
+                                    "bg-gradient-to-r from-gray-100 to-gray-50 ring-gray-300", // Silver
+                                    "bg-gradient-to-r from-orange-100 to-orange-50 ring-orange-200" // Bronze
+                                ];
+                                const defaultColor = "bg-white ring-gray-100";
+                                const bgColor = index < 3 ? rankColors[index] : defaultColor;
+                                const rankIcons = ["🏆", "🥈", "🥉"];
+
+                                return (
+                                    <div key={member.uid} className={`flex flex-row items-center justify-between p-3 rounded-2xl shadow-sm ring-1 transition-all hover:scale-[1.02] ${bgColor}`}>
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-white/60 font-black text-terra-900 shadow-sm ring-1 ring-black/5">
+                                                {isTop3 ? rankIcons[index] : `#${index + 1}`}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className={`text-sm font-black ${isTop3 ? 'text-terra-950' : 'text-gray-700'}`}>{member.name}</span>
+                                                {member.uid === user?.uid && (
+                                                    <span className="text-[9px] font-bold text-terra-600 uppercase tracking-widest">You</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-base font-black text-terra-700">{member.points.toLocaleString()}</span>
+                                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Pts</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="rounded-2xl border-2 border-dashed border-gray-100 bg-gray-50/50 p-6 text-center">
+                            <p className="text-xs text-gray-500 mb-1">No points earned yet.</p>
+                            <p className="text-[10px] text-gray-400 italic">Complete actions to climb the leaderboard!</p>
                         </div>
                     )}
                 </div>
